@@ -1,0 +1,78 @@
+---
+- name: cri-o conf file to load the modules at bootup
+  ansible.builtin.copy:
+    src: static/crio.conf
+    dest: /etc/modules-load.d/crio.conf
+    mode: '0644'
+    backup: true
+
+- name: load kernel module overlay
+  community.general.modprobe:
+    name: overlay
+    state: present
+
+- name: load kernel module br_netfilter
+  community.general.modprobe:
+    name: br_netfilter
+    state: present
+
+- name: set bridge-nf-call-iptables
+  ansible.posix.sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: '1'
+    sysctl_set: true
+    state: present
+
+- name: set ipv4 forwarding
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: true
+    state: present
+
+- name: set bridge-nf-call-ip6tables
+  ansible.posix.sysctl:
+    name: net.bridge.bridge-nf-call-ip6tables
+    value: '1'
+    sysctl_set: true
+    state: present
+    reload: true
+
+- name: add libcontainers repo
+  ansible.builtin.apt_repository:
+    repo: deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{  'xUbuntu_' + ansible_facts['distribution_version'] }}/ /
+
+- name: add libcontainers apt-key
+  ansible.builtin.apt_key:
+    url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{  'xUbuntu_' + ansible_facts['distribution_version'] }}/Release.key
+
+- name: add crio repo
+  ansible.builtin.apt_repository:
+    repo: deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ settings.kubernetes_version }}/{{ 'xUbuntu_' + ansible_facts['distribution_version'] }}/ /
+
+- name: add crio apt-key
+  ansible.builtin.apt_key:
+    url: http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ settings.kubernetes_version }}/{{  'xUbuntu_' + ansible_facts['distribution_version'] }}/Release.key
+
+# - name: debug default ipv4
+#   debug:
+#     var: "settings.kubernetes_version"
+
+- name: update system
+  ansible.builtin.apt:
+    update_cache: true
+    upgrade: dist
+
+# - name: install cri-0
+#   ansible.builtin.apt:
+#     name:
+#       - cri-o
+#       - cri-o-runc
+#     state: present
+
+# - name: systemd start cri-0
+#   ansible.builtin.systemd:
+#     daemon_reload: true
+#     enabled: true
+#     name: crio
+#     state: started

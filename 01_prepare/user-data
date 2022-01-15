@@ -5,7 +5,7 @@
 chpasswd:
   expire: false
   list:
-  - ubuntu:$y$j9T$lO1Y4sLwEnltzzg5fbLvg.$xkTnLKC6F5sRTwWu6fyEy7b980q.Hw53oeLuNIBVXn5
+  - ubuntu:$6$1yJLLdrUWNimwnYd$A8qzhDpuCbpemI2RW2nSd2fst.pb.viYfB/5G30U3/oVAbChNcV2D8X6updpw1O2Az0ZHKhLbJVBYxcbyM6iP.
 
 ssh_pwauth: false
 

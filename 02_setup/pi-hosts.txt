@@ -1,0 +1,2 @@
+[masters]
+pi0 ansible_host=192.168.178.54 # Pi0

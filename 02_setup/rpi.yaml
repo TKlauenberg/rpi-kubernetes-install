@@ -1,0 +1,21 @@
+---
+- hosts: all
+  vars:
+    settings:
+      kubernetes_version: "1.21"
+  become: true
+  become_method: sudo
+  roles:
+    - common
+
+# - hosts: masters
+#   roles:
+#     - kubemaster
+
+# - hosts: workers
+#   roles:
+#     - kubeworkers
+
+# - hosts: masters
+#   roles:
+#     - basics

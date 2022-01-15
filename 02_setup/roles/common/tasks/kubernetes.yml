@@ -1,0 +1,45 @@
+---
+
+- name: update system
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+    update_cache: true
+    state: present
+
+- name: add google kubernetes apt-key
+  ansible.builtin.apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+- name: add google kubernetes apt repo
+  ansible.builtin.apt_repository:
+    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+
+- name: Install packages for kubernetes
+  ansible.builtin.package:
+    name:
+      - kubernetes={{ settings.kubernetes_version }}
+      - kubectl={{ settings.kubernetes_version }}
+      - kubelet={{ settings.kubernetes_version }}
+      - kubeadm={{ settings.kubernetes_version }}
+    state: present
+
+- name: Enable service kubelet
+  ansible.builtin.service:
+    name: kubelet
+    state: started
+    enabled: true
+
+# - name: Pull basic images
+#   ansible.builtin.command:
+#     cmd: kubeadm config images pull
+#     creates: /etc/kubernetes/kubelet.conf
+
+# - name: Install helm
+#   ansible.builtin.shell:
+#     cmd: |
+#       curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+#     creates: /etc/kubernetes/kubelet.conf
+#   register: k8sinit_output
