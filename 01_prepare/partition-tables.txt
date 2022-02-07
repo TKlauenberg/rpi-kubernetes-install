@@ -1,0 +1,8 @@
+label: dos
+label-id: 0x2a9dbf31
+device: /dev/sdf
+unit: sectors
+sector-size: 512
+
+/dev/sdf1 : start=        2048, size=     8388608, type=c, bootable
+/dev/sdf2 : start=     8390656, size=   116344832, type=83
