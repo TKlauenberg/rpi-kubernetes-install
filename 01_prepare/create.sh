@@ -90,7 +90,7 @@ then
     exit 6
 fi
 
-sfdisk $device < $basepath/partition-tablesroot
+sfdisk $device < $basepath/partition-tables.txt
 
 mkdosfs -F 32 ${device}1
 mkfs.ext4 -F ${device}2
