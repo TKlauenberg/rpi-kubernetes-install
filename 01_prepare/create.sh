@@ -93,7 +93,7 @@ fi
 sfdisk $device < $basepath/partition-tables.txt
 
 mkdosfs -F 32 ${device}1
-mkfs.ext4 -F ${device}2
+# mkfs.ext4 -F ${device}2
 
 echo "Running: mount ${device}1 \"${sdcard_mount}\" "
 mount ${device}1 "${sdcard_mount}"

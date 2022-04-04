@@ -4,5 +4,4 @@ device: /dev/sdf
 unit: sectors
 sector-size: 512
 
-/dev/sdf1 : start=        2048, size=     8388608, type=c, bootable
-/dev/sdf2 : start=     8390656, size=   116344832, type=83
+/dev/sdf1 : start=        2048, size=     1953792, type=c, bootable
