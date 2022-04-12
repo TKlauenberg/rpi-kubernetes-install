@@ -1,0 +1,9 @@
+---
+- name: Check for base system config lockfile
+  ansible.builtin.stat: path="/mnt/.nvm_mountpoints"
+  register: basic_config_lock
+- ansible.builtin.include_tasks: filesystem.yml
+  when: basic_config_lock.stat.exists == False
+- ansible.builtin.include_tasks: networking.yml
+- ansible.builtin.include_tasks: kubernetes.yml
+- ansible.builtin.include_tasks: nfs.yml

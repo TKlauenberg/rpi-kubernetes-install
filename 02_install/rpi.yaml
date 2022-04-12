@@ -1,0 +1,20 @@
+---
+- hosts: all
+  vars:
+    settings:
+      nfs_host: "nfs_host"
+      nfs_multi_share_path: "/nfs/path"
+  roles:
+    - common
+
+- hosts: masters
+  roles:
+    - kubemaster
+
+- hosts: workers
+  roles:
+    - kubeworkers
+
+- hosts: masters
+  roles:
+    - basics

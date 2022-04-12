@@ -1,0 +1,3 @@
+---
+- ansible.builtin.include_tasks: k8s-general-setup.yml
+- ansible.builtin.include_tasks: k8s-github.yml

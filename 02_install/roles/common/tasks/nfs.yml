@@ -1,0 +1,23 @@
+---
+- name: Install nfsprogs
+  ansible.builtin.package:
+    name:
+      - nfs-utils
+
+- name: Prepare nfs mountpoint
+  ansible.builtin.file:
+    path: /media/nfs
+    state: directory
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Mount NFS resources
+  ansible.posix.mount:
+    src: "{{ settings.nfs_host }}:{{ settings.nfs_multi_share_path }}"
+    path: /media/nfs
+    fstype: nfs
+    opts: nofail,noatime,nolock,tcp,actimeo=1800
+    state: mounted
+    boot: true
+

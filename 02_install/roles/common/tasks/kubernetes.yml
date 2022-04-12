@@ -1,0 +1,68 @@
+---
+- name: create crio.conf
+  ansible.builtin.copy:
+    src: static/crio.conf
+    dest: /etc/modules-load.d/crio.conf
+    owner: root
+    group: root
+    mode: '0644'
+    backup: true
+  register: create_crio_conf
+
+- name: Add overlay module
+  community.general.modprobe:
+    name: overlay
+    state: present
+
+- name: Add br_netfilter module
+  community.general.modprobe:
+    name: br_netfilter
+    state: present
+
+- name: set kernel config params
+  ansible.posix.sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: '1'
+    state: present
+    sysctl_file: /etc/sysctl.d/99-kubernetes-cri.conf
+    reload: true
+
+- name: set kernel config params
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    state: present
+    sysctl_file: /etc/sysctl.d/99-kubernetes-cri.conf
+    reload: true
+
+- name: set kernel config params
+  ansible.posix.sysctl:
+    name: net.bridge.bridge-nf-call-ip6tables
+    value: '1'
+    state: present
+    sysctl_file: /etc/sysctl.d/99-kubernetes-cri.conf
+    reload: true
+
+- name: Enable service crio
+  ansible.builtin.service:
+    name: crio
+    state: started
+    enabled: true
+
+- name: Enable service kubelet
+  ansible.builtin.service:
+    name: kubelet
+    state: started
+    enabled: true
+
+- name: Pull basic images
+  ansible.builtin.shell:
+    cmd: kubeadm config images pull
+    creates: /var/lib/containers/storage/overlay-images/images.json
+  register: test
+
+- name: Install helm
+  ansible.builtin.shell:
+    cmd: |
+      curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | sh
+    creates: /usr/local/bin/helm
