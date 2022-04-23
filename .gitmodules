@@ -1,0 +1,6 @@
+[submodule "step3/infrastructure/external/flannel"]
+	path = step3/infrastructure/external/flannel
+	url = https://github.com/flannel-io/flannel.git
+[submodule "step3/infrastructure/external/metallb"]
+	path = step3/infrastructure/external/metallb
+	url = https://github.com/metallb/metallb.git
