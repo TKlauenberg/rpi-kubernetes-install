@@ -4,3 +4,6 @@
 [submodule "step3/infrastructure/external/metallb"]
 	path = step3/infrastructure/external/metallb
 	url = https://github.com/metallb/metallb.git
+[submodule "step3/infrastructure/external/kubegraf"]
+	path = step3/infrastructure/external/kubegraf
+	url = https://github.com/devopsprodigy/kubegraf.git
