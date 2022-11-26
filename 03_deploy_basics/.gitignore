@@ -1,0 +1,3 @@
+**.terraform
+infrastructure/.terraform.lock.hcl
+terraplan
