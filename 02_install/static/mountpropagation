@@ -1,0 +1,10 @@
+#!/sbin/openrc-run
+
+name="mountpropagation"
+command="/usr/local/bin/mountpropagation.sh"
+command_background=true
+pidfile="/run/${RC_SVCNAME}.pid"
+
+stop_post() {
+    rm /etc/runlevels/default/mountpropagation
+}

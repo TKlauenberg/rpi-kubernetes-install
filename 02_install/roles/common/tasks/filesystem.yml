@@ -82,19 +82,6 @@
     state: link
     force: true
 
-
-# - name: Housekeeping
-#   ansible.builtin.shell:
-#     cmd: |
-#       rm -f /media/mmcblk0p1/boot/*
-#       cd /mnt
-#       rm boot/boot
-#       mv boot/* /media/mmcblk0p1/boot/
-#       rm -Rf boot
-#       mkdir media/mmcblk0p1
-#       ln -s media/mmcblk0p1/boot boot
-#     removes: /mnt/boot/boot
-
 - name: Add mountpoints to fstab
   ansible.builtin.shell:
     cmd: |
@@ -108,15 +95,30 @@
     chdir: /mnt
     creates: /mnt/.nvm_mountpoints
 
-- name: Enable repositories and cgroups
-  ansible.builtin.shell:
-    cmd: |
-      sed -i '/edge/s/^#//' /mnt/etc/apk/repositories
-      sed -i 's/^/root=\/dev\/mmcblk0p2 /' /media/mmcblk0p1/cmdline.txt
-      echo "cgroup_enable=cpuset cgroup_enable=memory cgroup_memory=1" >> /media/mmcblk0p1/cmdline.txt
-      sed -i ':a;N;$!ba;s/\n/ /g' /media/mmcblk0p1/cmdline.txt
-      touch /mnt/.nvm_cgroups
-    creates: /mnt/.nvm_cgroups
+- name: Enable repositories
+  ansible.builtin.replace:
+    path: /mnt/etc/apk/repositories
+    regexp: '^#(.*\/edge.*)'
+    replace: '\1'
+
+- name: Get current cmdline.txt
+  ansible.builtin.slurp:
+    src: /media/mmcblk0p1/cmdline.txt
+  register: cmdline
+
+- name: Update cmdline
+  ansible.builtin.template:
+    src: cmdline.j2
+    dest: /media/mmcblk0p1/cmdline.txt
+    mode: 0644
+  vars:
+    cmdline: "{{ cmdline['content'] | b64decode }}"
+
+- name: Create info file that all file config is ready
+  ansible.builtin.file:
+    path: /mnt/.nvm_cgroups
+    state: touch
+    mode: 0644
 
 - name: Copy ssh public keys from overlay to new sys
   ansible.builtin.copy:

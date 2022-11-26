@@ -15,17 +15,16 @@
       sh out.sh
     creates: out.sh
 
-- name: Copy kubectl config to workers
+- name: Create kube folder
+  ansible.builtin.file:
+    path: "{{ ansible_user_dir }}/.kube"
+    state: directory
+    mode: 0600
+
+- name: Copy kubeconfig
   ansible.builtin.copy:
     src: static/kubectl.conf
-    dest: /root/kubectl-config
-    owner: root
-    group: root
-    mode: '0644'
-
-- name: Copying kubeconfig file
-  ansible.builtin.shell:
-    cmd: |
-      mkdir -p $HOME/.kube
-      cp -f /root/kubectl-config $HOME/.kube/config
-      chown $(id -u):$(id -g) $HOME/.kube/config
+    dest: "{{ ansible_user_dir }}/.kube/config"
+    mode: 0600
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"

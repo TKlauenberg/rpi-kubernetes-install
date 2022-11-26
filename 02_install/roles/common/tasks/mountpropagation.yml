@@ -1,0 +1,27 @@
+---
+- name: Upload init script
+  ansible.builtin.copy:
+    src: static/mountpropagation
+    dest: /etc/init.d/mountpropagation
+    owner: root
+    group: root
+    mode: '0744'
+    backup: true
+
+- name: Upload service script
+  ansible.builtin.copy:
+    src: static/mountpropagation.sh
+    dest: /usr/local/bin/mountpropagation.sh
+    owner: root
+    group: root
+    mode: '0744'
+    backup: true
+
+- name: Reboot to start service
+  ansible.builtin.reboot:
+
+- name: Enable service crio
+  ansible.builtin.service:
+    name: mountpropagation
+    state: started
+    enabled: true

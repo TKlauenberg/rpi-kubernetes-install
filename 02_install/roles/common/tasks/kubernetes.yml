@@ -1,5 +1,17 @@
 ---
-- name: create crio.conf
+- name: Install packages for kubernetes
+  ansible.builtin.package:
+    name:
+      - kubernetes
+      - kubectl
+      - cri-o
+      - cni-plugins
+      - cni-plugin-flannel
+      - kubelet
+      - kubeadm
+    state: present
+
+- name: Create crio.conf
   ansible.builtin.copy:
     src: static/crio.conf
     dest: /etc/modules-load.d/crio.conf
@@ -19,7 +31,7 @@
     name: br_netfilter
     state: present
 
-- name: set kernel config params
+- name: Set kernel config params
   ansible.posix.sysctl:
     name: net.bridge.bridge-nf-call-iptables
     value: '1'
@@ -27,7 +39,7 @@
     sysctl_file: /etc/sysctl.d/99-kubernetes-cri.conf
     reload: true
 
-- name: set kernel config params
+- name: Set kernel config params
   ansible.posix.sysctl:
     name: net.ipv4.ip_forward
     value: '1'
@@ -35,7 +47,7 @@
     sysctl_file: /etc/sysctl.d/99-kubernetes-cri.conf
     reload: true
 
-- name: set kernel config params
+- name: Set kernel config params
   ansible.posix.sysctl:
     name: net.bridge.bridge-nf-call-ip6tables
     value: '1'
@@ -56,7 +68,7 @@
     enabled: true
 
 - name: Pull basic images
-  ansible.builtin.shell:
+  ansible.builtin.command:
     cmd: kubeadm config images pull
     creates: /var/lib/containers/storage/overlay-images/images.json
   register: test

@@ -1,5 +1,6 @@
 ---
 - hosts: all
+  name: Common Tasks
   vars:
     settings:
       nfs_host: "nfs_host"
@@ -8,13 +9,16 @@
     - common
 
 - hosts: masters
+  name: Configure Kubernetes Master
   roles:
     - kubemaster
 
 - hosts: workers
+  name: Let Kube workers join Master
   roles:
     - kubeworkers
 
 - hosts: masters
+  name: Start Kubernetes
   roles:
     - basics

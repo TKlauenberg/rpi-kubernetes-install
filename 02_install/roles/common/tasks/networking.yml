@@ -20,12 +20,6 @@
     name:
       - dbus
       - avahi
-      - kubernetes
-      - kubectl
-      - cri-o
-      - cni-plugins
-      - kubelet
-      - kubeadm
       - sudo
       - curl
     state: present
@@ -51,11 +45,13 @@
     name: avahi-daemon
     state: restarted
     enabled: true
-  when: overwrite_avahi_config.changed
-
-
+  notify: "restart avahi"
 
 - name: Enable promisc mode for ARP requests
   ansible.builtin.command:
     cmd: ip link set eth0 promisc on
   when: not ansible_facts['eth0']['promisc']
+
+# todo only when parts changes
+- name: Reboot
+  ansible.builtin.reboot:

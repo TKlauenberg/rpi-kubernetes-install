@@ -20,4 +20,3 @@
     opts: nofail,noatime,nolock,tcp,actimeo=1800
     state: mounted
     boot: true
-

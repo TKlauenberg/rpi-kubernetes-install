@@ -1,2 +1,3 @@
 ---
-- ansible.builtin.include_tasks: master-setup.yml
+- name: Kubernetes Master Setup
+  ansible.builtin.include_tasks: master-setup.yml

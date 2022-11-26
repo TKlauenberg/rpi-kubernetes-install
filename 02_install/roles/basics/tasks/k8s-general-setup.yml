@@ -1,8 +1,8 @@
 ---
-- name: Taint nodes
-  ansible.builtin.shell:
-    cmd: |
-      kubectl taint nodes --all node-role.kubernetes.io/master:NoSchedule- || true
+# - name: Taint nodes
+#   ansible.builtin.shell:
+#     cmd: |
+#       kubectl taint nodes --all node-role.kubernetes.io/master:NoSchedule-
 
 - name: Install py3-pip
   ansible.builtin.package:
@@ -12,5 +12,5 @@
     state: present
 
 - name: Install yaml package
-  pip:
+  ansible.builtin.pip:
     name: PyYAML
