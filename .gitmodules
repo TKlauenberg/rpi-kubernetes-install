@@ -1,9 +1,6 @@
-[submodule "step3/infrastructure/external/flannel"]
-	path = step3/infrastructure/external/flannel
+[submodule "03_deploy_basics/infrastructure/external/flannel"]
+	path = 03_deploy_basics/infrastructure/external/flannel
 	url = https://github.com/flannel-io/flannel.git
-[submodule "step3/infrastructure/external/metallb"]
-	path = step3/infrastructure/external/metallb
+[submodule "03_deploy_basics/infrastructure/external/metallb"]
+	path = 03_deploy_basics/infrastructure/external/metallb
 	url = https://github.com/metallb/metallb.git
-[submodule "step3/infrastructure/external/kubegraf"]
-	path = step3/infrastructure/external/kubegraf
-	url = https://github.com/devopsprodigy/kubegraf.git
