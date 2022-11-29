@@ -14,7 +14,6 @@ resource "helm_release" "metallb_networking" {
   repository = "https://metallb.github.io/metallb"
   chart      = "metallb"
 
-  timeout         = 120
   cleanup_on_fail = true
   force_update    = true
   namespace       = "metallb-system"

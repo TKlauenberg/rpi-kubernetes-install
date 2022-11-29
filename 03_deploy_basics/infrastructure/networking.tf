@@ -1,6 +1,27 @@
 # Basic networking
 
+# csr approver
+resource "helm_release" "kubelet-csr-approver" {
+  name       = "kubelet-csr-approver"
+  repository = "https://postfinance.github.io/kubelet-csr-approver"
+  chart      = "kubelet-csr-approver"
+
+  namespace = "kube-system"
+
+  set {
+    name  = "providerRegex"
+    value = "^p."
+  }
+  set {
+    name  = "providerIpPrefixes"
+    value = "192.168.178.0/22"
+  }
+}
+
 module "networking_flannel" {
+  depends_on = [
+    helm_release.kubelet-csr-approver
+  ]
   source = "./modules/networking-flannel"
 }
 
@@ -8,44 +29,27 @@ resource "kubernetes_namespace" "metallb_system" {
   metadata {
     name = "metallb-system"
     labels = {
-      app = "metallb"
+      app                                  = "metallb"
       "pod-security.kubernetes.io/enforce" = "privileged"
-      "pod-security.kubernetes.io/audit" = "privileged"
-      "pod-security.kubernetes.io/warn" = "privileged"
+      "pod-security.kubernetes.io/audit"   = "privileged"
+      "pod-security.kubernetes.io/warn"    = "privileged"
     }
   }
 }
 
 module "networking_metallb" {
-  depends_on = [kubernetes_namespace.metallb_system]
-  source     = "./modules/networking-metallb"
+  depends_on = [
+    kubernetes_namespace.metallb_system,
+    module.networking_flannel
+  ]
+  source = "./modules/networking-metallb"
 }
 
-# resource "kubernetes_config_map" "metallb_cfg_map" {
-#   depends_on = [
-#     module.networking_metallb
-#   ]
-#   metadata {
-#     name      = "config"
-#     namespace = "metallb-system"
-#   }
-
-#   data = {
-#     config = <<CFGMAP
-#   address-pools:
-#   - name: default
-#     protocol: layer2
-#     addresses:
-#     - ${var.network_subnet}.200-${var.network_subnet}.250
-#     CFGMAP
-#   }
-# }
-
-resource "kubernetes_manifest" "metallb_addresspool" {
+resource "kubectl_manifest" "metallb_addresspool" {
   depends_on = [
     module.networking_metallb
   ]
-  manifest = {
+  yaml_body = yamlencode({
     "apiVersion" = "metallb.io/v1beta1"
     "kind"       = "IPAddressPool"
     "metadata" = {
@@ -53,17 +57,17 @@ resource "kubernetes_manifest" "metallb_addresspool" {
       "namespace" = "metallb-system"
     }
     "spec" = {
-      "addresses" = ["${var.network_subnet}.210-${var.network_subnet}.250"]
+      "addresses"  = ["${var.network_subnet}.210-${var.network_subnet}.250"]
       "autoAssign" = "true"
     }
-  }
+  })
 }
 
-resource "kubernetes_manifest" "mettallb_l2advertisement" {
+resource "kubectl_manifest" "mettallb_l2advertisement" {
   depends_on = [
-    kubernetes_manifest.metallb_addresspool
+    kubectl_manifest.metallb_addresspool
   ]
-  manifest = {
+  yaml_body = yamlencode({
     "apiVersion" = "metallb.io/v1beta1"
     "kind"       = "L2Advertisement"
     "metadata" = {
@@ -73,5 +77,5 @@ resource "kubernetes_manifest" "mettallb_l2advertisement" {
     "spec" = {
       "ipAddressPools" = ["default"]
     }
-  }
+  })
 }

@@ -1,5 +1,8 @@
 ## Install metrics server
 resource "helm_release" "metrics_server" {
+  depends_on = [
+    kubectl_manifest.mettallb_l2advertisement
+  ]
   name       = "k8s-metrics-server"
   namespace  = "kube-system"
   repository = "https://kubernetes-sigs.github.io/metrics-server/"
