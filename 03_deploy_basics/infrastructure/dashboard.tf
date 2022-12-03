@@ -33,7 +33,7 @@ resource "helm_release" "k8s_dashboard" {
   }
   set {
     name  = "ingress.enabled"
-    value = "false"
+    value = "true"
   }
   set {
     name  = "rbac.create"
@@ -89,33 +89,5 @@ resource "kubernetes_cluster_role_binding" "k8s_dashboard_role" {
     kind      = "ServiceAccount"
     name      = "k8s-dashboard-kubernetes-dashboard"
     namespace = "default"
-  }
-}
-
-resource "kubernetes_ingress" "dashboard_routing" {
-  depends_on = [
-    kubernetes_cluster_role_binding.k8s_dashboard_role
-  ]
-  metadata {
-    name = "nginx-k8s-dashboard"
-    annotations = {
-      "kubernetes.io/ingress.class" : "nginx"
-    }
-    namespace = "default"
-  }
-
-  spec {
-    rule {
-      host = "k8s.local"
-      http {
-        path {
-          path = "/"
-          backend {
-            service_name = "k8s-dashboard-kubernetes-dashboard"
-            service_port = 1337
-          }
-        }
-      }
-    }
   }
 }

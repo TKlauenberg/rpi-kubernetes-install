@@ -19,9 +19,6 @@ resource "helm_release" "kubelet-csr-approver" {
 }
 
 module "networking_flannel" {
-  depends_on = [
-    helm_release.kubelet-csr-approver
-  ]
   source = "./modules/networking-flannel"
 }
 
@@ -58,7 +55,7 @@ resource "kubectl_manifest" "metallb_addresspool" {
     }
     "spec" = {
       "addresses"  = ["${var.network_subnet}.210-${var.network_subnet}.250"]
-      "autoAssign" = "true"
+      "autoAssign" = true
     }
   })
 }
