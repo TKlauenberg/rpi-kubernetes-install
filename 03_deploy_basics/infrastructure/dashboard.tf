@@ -36,6 +36,10 @@ resource "helm_release" "k8s_dashboard" {
     value = "true"
   }
   set {
+    name  = "ingress.annotations.kubernetes\\.io/ingress\\.class"
+    value = "nginx"
+  }
+  set {
     name  = "rbac.create"
     value = "true"
   }
