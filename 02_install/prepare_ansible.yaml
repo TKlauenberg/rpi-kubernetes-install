@@ -1,0 +1,12 @@
+---
+- hosts: all
+  gather_facts: false
+  tasks:
+    - name: Setup chrony
+      ansible.builtin.raw: setup-ntp -c chrony
+    - name: Setup - setup-apkrepos -f
+      ansible.builtin.raw: setup-apkrepos -f
+    - name: Setup - apk update
+      ansible.builtin.raw: apk update
+    - name: Setup - apk add python3
+      ansible.builtin.raw: apk add python3
