@@ -15,16 +15,22 @@
       sh out.sh
     creates: out.sh
 
-- name: Create kube folder
+- name: Create manifests folder
   ansible.builtin.file:
-    path: "{{ ansible_user_dir }}/.kube"
+    path: "/etc/kubernetes/manifests"
     state: directory
     mode: 0600
 
-- name: Copy kubeconfig
-  ansible.builtin.copy:
-    src: static/kubectl.conf
-    dest: "{{ ansible_user_dir }}/.kube/config"
-    mode: 0600
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
+# - name: Create kube folder
+#   ansible.builtin.file:
+#     path: "{{ ansible_user_dir }}/.kube"
+#     state: directory
+#     mode: 0600
+
+# - name: Copy kubeconfig
+#   ansible.builtin.copy:
+#     src: static/kubectl.conf
+#     dest: "{{ ansible_user_dir }}/.kube/config"
+#     mode: 0600
+#     owner: "{{ ansible_user }}"
+#     group: "{{ ansible_user }}"

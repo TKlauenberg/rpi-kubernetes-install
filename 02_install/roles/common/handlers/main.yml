@@ -5,3 +5,9 @@
     state: restarted
     enabled: true
   listen: "restart avahi"
+
+- name: Check if base services are started
+  ansible.builtin.service:
+    name: mountpropagation
+    state: started
+  listen: "check_mountpropagation_service"

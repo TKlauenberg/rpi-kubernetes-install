@@ -17,11 +17,12 @@
     mode: '0744'
     backup: true
 
-- name: Reboot to start service
-  ansible.builtin.reboot:
-
-- name: Enable service crio
+- name: Enable service mountpropagation
   ansible.builtin.service:
     name: mountpropagation
     state: started
     enabled: true
+
+- name: Reboot to start service
+  ansible.builtin.reboot:
+  notify: "check_mountpropagation_service"
