@@ -4,3 +4,6 @@
 [submodule "03_deploy_basics/infrastructure/external/metallb"]
 	path = 03_deploy_basics/infrastructure/external/metallb
 	url = https://github.com/metallb/metallb.git
+[submodule "03_deploy_basics/infrastructure/static/external/community-templates"]
+	path = 03_deploy_basics/infrastructure/static/external/community-templates
+	url = https://github.com/influxdata/community-templates.git
