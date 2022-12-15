@@ -2,7 +2,23 @@
 # - name: Taint nodes
 #   ansible.builtin.shell:
 #     cmd: |
-#       kubectl taint nodes --all node-role.kubernetes.io/master:NoSchedule-
+#       kubectl taint nodes --all node-role.kubernetes.io/control-plane- || true
+
+- name: Download etcd ca cert
+  ansible.builtin.fetch:
+    src: /etc/kubernetes/pki/etcd/ca.crt
+    dest: static/etcd/ca.crt
+
+- name: Download etcd healthcheck cert
+  ansible.builtin.fetch:
+    src: /etc/kubernetes/pki/etcd/healthcheck-client.crt
+    dest: static/etcd/healthcheck-client.crt
+
+- name: Download etcd healthcheck key
+  ansible.builtin.fetch:
+    src: /etc/kubernetes/pki/etcd/healthcheck-client.key
+    dest: static/etcd/healthcheck-client.key
+
 
 # - name: Install py3-pip
 #   ansible.builtin.package:
