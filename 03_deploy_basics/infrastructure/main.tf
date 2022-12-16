@@ -20,9 +20,7 @@ variable "network_subnet" {
   type = string
   description = "The Subnet for Kubernetes"
 }
-variable "net_hosts" {
-  description = "different ip address 'ends' for the different services"
-}
+
 variable "nfs_storage" {
   description = "path of nfs storage"
 }
