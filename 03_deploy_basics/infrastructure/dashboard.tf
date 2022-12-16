@@ -7,14 +7,6 @@ resource "helm_release" "metrics_server" {
   namespace  = "kube-system"
   repository = "https://kubernetes-sigs.github.io/metrics-server/"
   chart      = "metrics-server"
-
-  # set {
-  #   name = "service.labels"
-  #   value = yamlencode({
-  #     "kubernetes.io/cluster-service" = "true"
-  #     "kubernetes.io/name"            = "Metrics-server"
-  #   })
-  # }
 }
 
 ## Install dashboard
@@ -30,14 +22,6 @@ resource "helm_release" "k8s_dashboard" {
   set {
     name  = "protocolHttp"
     value = "true"
-  }
-  set {
-    name  = "ingress.enabled"
-    value = "true"
-  }
-  set {
-    name  = "ingress.annotations.kubernetes\\.io/ingress\\.class"
-    value = "nginx"
   }
   set {
     name  = "rbac.create"
