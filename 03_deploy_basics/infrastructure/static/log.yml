@@ -1,0 +1,126 @@
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Variable
+metadata:
+  name: focused-jackson-1ba001
+spec:
+  language: flux
+  name: podname
+  query: |-
+    import "influxdata/influxdb/schema"
+    schema.measurements(bucket: "fluentbit")
+  type: query
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Label
+metadata:
+    name: thirsty-matsumoto-9f8003
+spec:
+    color: '#757888'
+    name: K8S
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Dashboard
+metadata:
+  name: bold-brahmagupta-1ba001
+spec:
+  associations:
+  - kind: Label
+    name: thirsty-matsumoto-9f8003
+  charts:
+  - colors:
+    - id: base
+      name: white
+      type: text
+      hex: "#ffffff"
+    fieldOptions:
+    - displayName: ts
+      fieldName: ts
+      visible: true
+    - displayName: msg
+      fieldName: msg
+      visible: true
+    - displayName: level
+      fieldName: level
+      visible: true
+    - displayName: stream
+      fieldName: stream
+      visible: true
+    - displayName: caller
+      fieldName: caller
+      visible: true
+    - displayName: path
+      fieldName: path
+    - displayName: _start
+      fieldName: _start
+    - displayName: _stop
+      fieldName: _stop
+    - displayName: _measurement
+      fieldName: _measurement
+    - displayName: _seq
+      fieldName: _seq
+    - displayName: _p
+      fieldName: _p
+    - displayName: expected-duration
+      fieldName: expected-duration
+    - displayName: prefix
+      fieldName: prefix
+    - displayName: request
+      fieldName: request
+    - displayName: response
+      fieldName: response
+    - displayName: took
+      fieldName: took
+    - displayName: detail
+      fieldName: detail
+    - displayName: duration
+      fieldName: duration
+    - displayName: end
+      fieldName: end
+    - displayName: start
+      fieldName: start
+    - displayName: step_count
+      fieldName: step_count
+    - displayName: revision
+      fieldName: revision
+    - displayName: compact-revision
+      fieldName: compact-revision
+    - displayName: local-member-applied-index
+      fieldName: local-member-applied-index
+    - displayName: local-member-id
+      fieldName: local-member-id
+    - displayName: local-member-snapshot-count
+      fieldName: local-member-snapshot-count
+    - displayName: local-member-snapshot-index
+      fieldName: local-member-snapshot-index
+    - displayName: snapshot-index
+      fieldName: snapshot-index
+    - displayName: compact-index
+      fieldName: compact-index
+    - displayName: log
+      fieldName: log
+      visible: true
+    - displayName: code
+      fieldName: code
+      visible: true
+    - displayName: message
+      fieldName: message
+      visible: true
+    height: 9
+    kind: Table
+    name: test
+    queries:
+    - query: |-
+        from(bucket: "fluentbit")
+          |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+          |> filter(fn: (r) => r["_measurement"] == v.podname)
+          |> pivot(rowKey: ["_seq"], columnKey: ["_field"], valueColumn: "_value")
+          |> group()
+    staticLegend: {}
+    tableOptions:
+      fixFirstColumn: true
+      sortBy: ts
+      verticalTimeAxis: true
+    timeFormat: YYYY-MM-DD HH:mm:ss
+    width: 10
+  name: Logboard

@@ -24,7 +24,8 @@ resource "kubernetes_secret" "influxdb_template" {
     namespace = local.namespace_name
   }
   data = {
-    "k8s.yml" = file("${path.root}/static/external/community-templates/k8s/k8s.yml")
+    "k8s.yml" = file("${path.root}/static/external/community-templates/k8s/k8s.yml"),
+    "log.yml" = file("${path.root}/static/log.yml"),
   }
 }
 
@@ -43,7 +44,7 @@ resource "helm_release" "influxdb2" {
 
   set {
     name  = "image.tag"
-    value = "2.5.1-alpine"
+    value = "2.6.1-alpine"
   }
 
   values = [yamlencode({
@@ -80,6 +81,8 @@ resource "helm_release" "influxdb2" {
         "init.sh" = <<-EOT
         #!/bin/bash
         influx apply --force yes -f /influxdb2-templates/k8s.yml
+        influx bucket create -n fluentbit
+        influx apply --force yes -f /influxdb2-templates/log.yml
         EOT
       }
     }
@@ -246,16 +249,6 @@ resource "kubernetes_cluster_role" "influx_telegraf" {
   }
 }
 
-resource "kubernetes_secret_v1" "influx_telegraf_svc_account" {
-  metadata {
-    name = "${local.telegraf_svc_account}-secret"
-    namespace = local.namespace_name
-    annotations = {
-      "kubernetes.io/service-account.name" = local.telegraf_svc_account
-    }
-  }
-  type = "kubernetes.io/service-account-token"
-}
 
 resource "kubernetes_service_account" "influx_telegraf" {
   depends_on = [
@@ -266,9 +259,20 @@ resource "kubernetes_service_account" "influx_telegraf" {
     name      = local.telegraf_svc_account
     namespace = local.namespace_name
   }
-  secret {
-    name = kubernetes_secret_v1.influx_telegraf_svc_account.metadata.0.name
+}
+
+resource "kubernetes_secret_v1" "influx_telegraf_svc_account" {
+  depends_on = [
+    kubernetes_service_account.influx_telegraf
+  ]
+  metadata {
+    name      = "${local.telegraf_svc_account}-secret"
+    namespace = local.namespace_name
+    annotations = {
+      "kubernetes.io/service-account.name" = local.telegraf_svc_account
+    }
   }
+  type = "kubernetes.io/service-account-token"
 }
 
 resource "kubernetes_cluster_role_binding" "influx_telegraf_binding" {
@@ -356,4 +360,65 @@ resource "helm_release" "telegraf" {
     name  = "image.tag"
     value = "1.24"
   }
+}
+
+resource "helm_release" "fluentbit" {
+  depends_on = [
+    helm_release.influxdb2,
+    kubernetes_cluster_role_binding.influx_telegraf_binding,
+  ]
+  name       = "fluentbit"
+  repository = "https://fluent.github.io/helm-charts"
+  chart      = "fluent-bit"
+  namespace  = local.namespace_name
+
+  values = [
+    yamlencode({
+      resources = {
+        requests = {
+          cpu    = "100m"
+          memory = "128Mi"
+        }
+        limits = {
+          cpu    = "100m"
+          memory = "128Mi"
+        }
+      }
+    }),
+    yamlencode({
+      config = {
+        inputs = <<-EOT
+          [INPUT]
+              Name              tail
+              Path              /var/log/containers/*.log
+              multiline.parser  cri
+              Tag               kube.*
+              Mem_Buf_Limit     5MB
+              Skip_Long_Lines   On
+              DB                /fluent.db
+        EOT
+        filters = <<-EOT
+        [FILTER]
+            Name kubernetes
+            Match kube.*
+            Merge_Log On
+            Keep_Log Off
+            K8S-Logging.Parser On
+            K8S-Logging.Exclude On
+        EOT
+        outputs = <<-EOT
+          [OUTPUT]
+              Name          influxdb
+              Match         kube.*
+              Host          ${local.influxdb_svc_name}
+              Port          ${local.influxdb_port}
+              Org           ${local.influx_organization}
+              Bucket        fluentbit
+              HTTP_Token    ${local.influxdb_token}
+              Sequence_Tag  _seq
+        EOT
+        customParsers = ""
+      }
+    }),
+  ]
 }
