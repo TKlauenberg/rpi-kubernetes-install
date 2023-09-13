@@ -19,18 +19,5 @@
   ansible.builtin.file:
     path: "/etc/kubernetes/manifests"
     state: directory
-    mode: 0600
+    mode: "600"
 
-# - name: Create kube folder
-#   ansible.builtin.file:
-#     path: "{{ ansible_user_dir }}/.kube"
-#     state: directory
-#     mode: 0600
-
-# - name: Copy kubeconfig
-#   ansible.builtin.copy:
-#     src: static/kubectl.conf
-#     dest: "{{ ansible_user_dir }}/.kube/config"
-#     mode: 0600
-#     owner: "{{ ansible_user }}"
-#     group: "{{ ansible_user }}"

@@ -1,0 +1,13 @@
+---
+- name: Upgrade packages
+  ansible.builtin.apt:
+    update_cache: true
+    name: '*'
+    state: latest
+  register: upgrade_result
+
+# reboot if upgrade was done
+- name: Reboot
+  ansible.builtin.reboot:
+    reboot_timeout: 600
+  when: upgrade_result.changed

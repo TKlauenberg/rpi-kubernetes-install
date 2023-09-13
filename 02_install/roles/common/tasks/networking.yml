@@ -2,7 +2,6 @@
 - name: Set hostname
   ansible.builtin.hostname:
     name: '{{ inventory_hostname }}'
-    use: alpine
 
 - name: "Build hosts file"
   ansible.builtin.lineinfile:
@@ -19,8 +18,7 @@
   ansible.builtin.package:
     name:
       - dbus
-      - avahi
-      - sudo
+      - avahi-daemon
       - curl
     state: present
 
@@ -55,3 +53,5 @@
 # todo only when parts changes
 - name: Reboot
   ansible.builtin.reboot:
+    reboot_timeout: 300
+  when: overwrite_avahi_config.changed

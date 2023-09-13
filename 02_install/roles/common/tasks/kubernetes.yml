@@ -1,17 +1,37 @@
 ---
 - name: Install packages for kubernetes
-  ansible.builtin.package:
+  ansible.builtin.apt:
+    update_cache: true
     name:
-      - kubernetes
-      - kubectl
-      - cri-o
-      - cni-plugins
-      - cni-plugin-flannel
-      - kubelet
-      - kubeadm
+      - kubectl={{ settings.kubernetes_version }}.*
+      - kubelet={{ settings.kubernetes_version }}.*
+      - kubeadm={{ settings.kubernetes_version }}.*
     state: present
 
-- name: Create crio.conf
+- name: Download crio tar.gz
+  ansible.builtin.get_url:
+  # make architecture variable
+    url: https://storage.googleapis.com/cri-o/artifacts/cri-o.arm64.v{{ settings.kubernetes_version }}.0.tar.gz
+    dest: /tmp/crio.tar.gz
+    mode: '0755'
+
+- name: Extract crio tar.gz
+  ansible.builtin.unarchive:
+    src: /tmp/crio.tar.gz
+    dest: /tmp
+    remote_src: true
+    creates: /tmp/cri-o/bin/crio
+
+- name: Install crio
+  ansible.builtin.shell:
+    cmd: |
+      SYSTEMDDIR=/lib/systemd/system
+      /tmp/cri-o/install
+    chdir: /tmp/cri-o
+    creates: /etc/crio/crio.conf
+  register: install_crio
+
+- name: Create crio.conf module load
   ansible.builtin.copy:
     src: static/crio.conf
     dest: /etc/modules-load.d/crio.conf
@@ -20,6 +40,16 @@
     mode: '0644'
     backup: true
   register: create_crio_conf
+
+- name: Create registries.conf
+  ansible.builtin.copy:
+    src: static/registries.conf
+    dest: /etc/containers/registries.conf
+    owner: root
+    group: root
+    mode: '0644'
+    backup: true
+  register: create_registries_conf
 
 - name: Add overlay module
   community.general.modprobe:
@@ -73,8 +103,13 @@
     creates: /var/lib/containers/storage/overlay-images/images.json
   register: test
 
-- name: Install helm
-  ansible.builtin.shell:
-    cmd: |
-      curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | sh
-    creates: /usr/local/bin/helm
+# - name: Install helm
+#   ansible.builtin.get_url:
+#     url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+#     dest: /tmp/download.sh
+#     mode: '0755'
+#   register: download_helm
+
+# - name: Download helm
+#   ansible.builtin.shell: /tmp/download.sh
+#   when: download_helm is changed

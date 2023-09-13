@@ -1,0 +1,106 @@
+#cloud-config
+
+# https://cloudinit.readthedocs.io/
+
+chpasswd:
+  expire: false
+  list:
+  - ubuntu:$6$1yJLLdrUWNimwnYd$A8qzhDpuCbpemI2RW2nSd2fst.pb.viYfB/5G30U3/oVAbChNcV2D8X6updpw1O2Az0ZHKhLbJVBYxcbyM6iP.
+
+ssh_pwauth: false
+
+ssh_authorized_keys:
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDMw+pv+CX5VaHCsqWAL6NwbcMin5K2s9e+55+OwKtBky58lEW4I/1jl/pj0kYEFMQgv6bvtK5uFS+mCvVQ+0KvMAFZ3ihOZGXWdHCgPY5GDV1h9UY1CF9S0JlMY8qV3ucbcP+EBjoMqmDK99wSbDQS4bKlE0Ohin0ufqf3LNrXluIKtgj5Pw75G63LP5eJ4MC7gvcDxBos3hJoT/U2Cwtq4dc5esdh/2rWZwX/vBdUsdNHXn5f08rH2nutqRnIZFy3XXXwCQBg1OY49OdxTBWtlXN1nSC98TWQsanQKq3LuydXadrQJLj1KqaSQResVWWIUR1kFOSrTRf0D4njr/0+mRlOho0BI47SVwt5yJtO1jQZWCkrhcrz7fcHc9OKadFHrX/T7wMit+3MG+WCuGF5Eu5P178+2GZQAU4qZF5m/tmnEnTYyq2zy/SWj06iBBf31+tkQtgVd5DpXfcaOKnoERwhqyNOttW3V6Vw1RwASNm1wa/iNoE0vTy66l+yMgKaKh2i+FRzhtBeGoRggNRbUMZ0+BxAQ+2mndwL0NYSjSCJWn+CEkKloV3JiOd/ZhAyW6SiE6ucl4kSJWquEwgzmtII8snnTS5qoqXQ81d1dNHIGblIi4kCnrh7jOBkw9OJ/trRLNhXvqLIqP/ceJkgaomZLOKfxwkPGr1TejTCdw== tobi@arch
+
+
+# add local apt repository http://192.168.178.63:8080/repository/kubernetes/
+apt:
+  preserve_sources_list: false
+  primary:
+    - arches: [default]
+      uri: "http://192.168.178.63:8080/repository/UbuntuLunar/"
+  sources:
+    kubernetes.list:
+      source: "deb http://192.168.178.63:8080/repository/kubernetes/ /"
+      # add kubernetes keyserver
+      key: |
+        -----BEGIN PGP PUBLIC KEY BLOCK-----
+        Version: GnuPG v2.0.15 (GNU/Linux)
+
+        mQENBGMHoXcBCADukGOEQyleViOgtkMVa7hKifP6POCTh+98xNW4TfHK/nBJN2sm
+        u4XaiUmtB9UuGt9jl8VxQg4hOMRf40coIwHsNwtSrc2R9v5Kgpvcv537QVIigVHH
+        WMNvXeoZkkoDIUljvbCEDWaEhS9R5OMYKd4AaJ+f1c8OELhEcV2dAQLLyjtnEaF/
+        qmREN+3Y9+5VcRZvQHeyBxCG+hdUGE740ixgnY2gSqZ/J4YeQntQ6pMUEhT6pbaE
+        10q2HUierj/im0V+ZUdCh46Lk/Rdfa5ZKlqYOiA2iN1coDPIdyqKavcdfPqSraKF
+        Lan2KLcZcgTxP+0+HfzKefvGEnZa11civbe9ABEBAAG0PmlzdjprdWJlcm5ldGVz
+        IE9CUyBQcm9qZWN0IDxpc3Y6a3ViZXJuZXRlc0BidWlsZC5vcGVuc3VzZS5vcmc+
+        iQE+BBMBCAAoBQJjB6F3AhsDBQkEHrAABgsJCAcDAgYVCAIJCgsEFgIDAQIeAQIX
+        gAAKCRAjRlTamilkNhnRCADud9iv+2CUtJGyZhhdzzd55wRKvHGmSY4eIAEKChmf
+        1+BHwFnzBzbdNtnglY2xSATqKIWikzXI1stAwi8qR0dK32CS+ofMS6OUklm26Yd1
+        jBWFg4LCCh8S21GLcuudHtW9QNCCjlByS4gyEJ+eYTOo2dWp88NWEzVXIKRtfLHV
+        myHJnt2QLmWOeYTgmCzpeT8onl2Lp19bryRGla+Ms0AmlCltPn8j+hPeADDtR2bv
+        7cTLDi/nA46u3SLV1P6yjC1ejOOswtgxppTxvLgYniS22aSnoqm47l111zZiZKJ5
+        bCm1Th6qJFJwOrGEOu3aV1iKaQmN2k4G2DixsHFAU3ZeiQIcBBMBAgAGBQJjB6F3
+        AAoJEM8Lkoze1k873TQP/0t2F/jltLRQMG7VCLw7+ps5JCW5FIqu/S2i9gSdNA0E
+        42u+LyxjG3YxmVoVRMsxeu4kErxr8bLcA4p71W/nKeqwF9VLuXKirsBC7z2syFiL
+        Ndl0ARnC3ENwuMVlSCwJO0MM5NiJuLOqOGYyD1XzSfnCzkXN0JGA/bfPRS5mPfoW
+        0OHIRZFhqE7ED6wyWpHIKT8rXkESFwszUwW/D7o1HagX7+duLt8WkrohGbxTJ215
+        YanOKSqyKd+6YGzDNUoGuMNPZJ5wTrThOkTzEFZ4HjmQ16w5xmcUISnCZd4nhsbS
+        qN/UyV9Vu3lnkautS15E4CcjP1RRzSkT0jka62vPtAzw+PiGryM1F7svuRaEnJD5
+        GXzj9RCUaR6vtFVvqqo4fvbA99k4XXj+dFAXW0TRZ/g2QMePW9cdWielcr+vHF4Z
+        2EnsAmdvF7r5e2JCOU3N8OUodebU6ws4VgRVG9gptQgfMR0vciBbNDG2Xuk1WDk1
+        qtscbfm5FVL36o7dkjA0x+TYCtqZIr4x3mmfAYFUqzxpfyXbSHqUJR2CoWxlyz72
+        XnJ7UEo/0UbgzGzscxLPDyJHMM5Dn/Ni9FVTVKlALHnFOYYSTluoYACF1DMt7NJ3
+        oyA0MELL0JQzEinixqxpZ1taOmVR/8pQVrqstqwqsp3RABaeZ80JbigUC29zJUVf
+        =F4EX
+        -----END PGP PUBLIC KEY BLOCK-----
+
+
+## On first boot, use ssh-import-id to give the specific users SSH access to
+## the default user
+#ssh_import_id:
+#- lp:my_launchpad_username
+#- gh:my_github_username
+
+## Update apt database and upgrade packages on first boot
+#package_update: true
+#package_upgrade: true
+
+## Install additional packages on first boot
+#packages:
+#- pwgen
+#- pastebinit
+#- [libpython2.7, 2.7.3-0ubuntu3.1]
+
+## Write arbitrary files to the file-system (including binaries!)
+#write_files:
+#- path: /etc/default/keyboard
+#  content: |
+#    # KEYBOARD configuration file
+#    # Consult the keyboard(5) manual page.
+#    XKBMODEL="pc105"
+#    XKBLAYOUT="gb"
+#    XKBVARIANT=""
+#    XKBOPTIONS="ctrl: nocaps"
+#  permissions: '0644'
+#  owner: root:root
+#- encoding: gzip
+#  path: /usr/bin/hello
+#  content: !!binary |
+#    H4sIAIDb/U8C/1NW1E/KzNMvzuBKTc7IV8hIzcnJVyjPL8pJ4QIA6N+MVxsAAAA=
+#  owner: root:root
+#  permissions: '0755'
+
+# write apt auth configuration
+write_files:
+- path: /etc/apt/auth.conf
+  content: |
+    machine http://192.168.178.63:8080
+    login apt
+    password HKDJba7L2DqkhoaAKNcgXCfsxYXk3W
+
+## Run arbitrary commands at rc.local like time
+#runcmd:
+#- [ ls, -l, / ]
+#- [ sh, -xc, "echo $(date) ': hello world!'" ]
+#- [ wget, "http://ubuntu.com", -O, /run/mydir/index.html ]

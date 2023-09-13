@@ -1,2 +1,2 @@
-alpine-base.tar.gz
-headless.tar.gz
+*.img
+*.xz

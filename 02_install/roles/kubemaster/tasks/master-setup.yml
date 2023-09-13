@@ -3,7 +3,7 @@
   ansible.builtin.copy:
     src: static/clusterconfig.yaml
     dest: "{{ ansible_user_dir }}/clusterconfig.yaml"
-    mode: 0600
+    mode: "600"
 
 - name: Initialize cluster
   ansible.builtin.shell:
@@ -17,9 +17,10 @@
   ansible.builtin.template:
     src: cluster_join.j2
     dest: cluster_join_file
-    mode: 0600
+    mode: "600"
   vars:
     content: '{{ k8sinit_output.stdout }}'
+    # content: '{{ k8sinit_output.stdout | regex_search("kubeadm join .*:\d+ --token .*\n.--discovery-token-ca-cert-hash sha256:.*") }}'
   when: '"token" in k8sinit_output.stdout'
 
 - name: Pulling the token file for setup purposes
@@ -35,17 +36,3 @@
     src: /etc/kubernetes/admin.conf
     dest: static/kubectl.conf
     fail_on_missing: true
-
-- name: Create kube folder
-  ansible.builtin.file:
-    path: "{{ ansible_user_dir }}/.kube"
-    state: directory
-    mode: 0600
-
-- name: Copy kubeconfig
-  ansible.builtin.copy:
-    src: static/kubectl.conf
-    dest: "{{ ansible_user_dir }}/.kube/config"
-    mode: 0600
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"

@@ -1,15 +1,8 @@
 ---
-- name: Check for base system config lockfile
-  ansible.builtin.stat:
-    path: "/mnt/.nvm_mountpoints"
-  register: basic_config_lock
-- name: Setup sdcard
-  ansible.builtin.include_tasks: filesystem.yml
-  when: not basic_config_lock.stat.exists
+- name: Start Updates
+  ansible.builtin.include_tasks: updates.yml
 - name: Setup Hostname / Network Packages
   ansible.builtin.include_tasks: networking.yml
-- name: Create Service for mount propagation
-  ansible.builtin.include_tasks: mountpropagation.yml
 - name: Install kubernetes
   ansible.builtin.include_tasks: kubernetes.yml
 - name: Mount NFS share

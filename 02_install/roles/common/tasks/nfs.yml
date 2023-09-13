@@ -2,7 +2,7 @@
 - name: Install nfsprogs
   ansible.builtin.package:
     name:
-      - nfs-utils
+      - nfs-common
 
 - name: Prepare nfs mountpoint
   ansible.builtin.file:
@@ -10,7 +10,7 @@
     state: directory
     owner: root
     group: root
-    mode: 0644
+    mode: "644"
 
 - name: Mount NFS resources
   ansible.posix.mount:

@@ -5,6 +5,7 @@
     settings:
       nfs_host: "nfs_host"
       nfs_multi_share_path: "/nfs/path"
+      kubernetes_version: "1.28"
   roles:
     - common
 

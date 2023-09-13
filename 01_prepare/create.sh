@@ -1,52 +1,34 @@
-# Echo usage if something isn't right.
-usage() {
-    echo "Usage: $0 [-v <version>] [-d <device>]" 1>&2; exit 1;
-}
-
-while getopts ":v:d:" o; do
-    case "${o}" in
-        v)
-            version=${OPTARG}
-            ;;
-        d)
-            echo "testdevice"
-            device=${OPTARG}
-            ;;
-        :)
-            echo "ERROR: Option -$OPTARG requires an argument"
-            usage
-            ;;
-        \?)
-            echo "ERROR: Invalid option -$OPTARG"
-            usage
-            ;;
+while getopts v: flag
+do
+    case "$flag" in
+        v) version=${OPTARG}
     esac
 done
-shift $((OPTIND-1))
 basepath="$(dirname "$(readlink -f "$0")")"
 
 variables=(
-    version
-    device
+  version
 )
 
 for variable in "${variables[@]}"
 do
-    if [[ -z ${!variable} ]]; then   # indirect expansion here
-        echo "ERROR: The param \"${variable}\" is missing.";
-        usage
-        exit 1
-    fi
+  if [[ -z ${!variable} ]]; then   # indirect expansion here
+    echo "ERROR: The param \"${variable}\" is missing.";
+    exit 2
+  fi
 done
 
-image_to_download="https://dl-cdn.alpinelinux.org/alpine/v${version}/releases/aarch64/alpine-rpi-${version}.0-aarch64.tar.gz"
+
+# https://cdimage.ubuntu.com/releases/20.04.3/release/ubuntu-20.04.3-preinstalled-server-arm64+raspi.img.xz
+image_to_download="https://cdimage.ubuntu.com/releases/${version}/release/ubuntu-${version}-preinstalled-server-arm64+raspi.img.xz"
+url_base="https://cdimage.ubuntu.com/releases/${version}/release/"
+sha_sum=$( curl $url_base"SHA256SUMS" | grep preinstalled-server-arm64+raspi.img.xz | awk -F " " ' { print $1 } ' )
 sdcard_mount="/mnt/sdcard"
-echo "${image_to_download}"
 
 if [ $(id | grep 'uid=0(root)' | wc -l) -ne "1" ]
 then
     echo "You are not root "
-    exit 3
+    exit
 fi
 
 
@@ -62,50 +44,63 @@ function umount_sdcard () {
     fi
 }
 
-# TODO check if file in folder matches the file which should be downloaded
-[[ ! -f $basepath/alpine-base.tar.gz ]] && curl ${image_to_download} -o $basepath/alpine-base.tar.gz
+# Download the latest image, using the  --continue "Continue getting a partially-downloaded file"
+[[ ! -f ubuntu_image.xz ]] && curl ${image_to_download} -o ubuntu_image.xz
 
+echo "Checking the SHA-1 of the downloaded image matches \"${sha_sum}\""
 
-# TODO add later
-# echo "Checking the SHA-1 of the downloaded image matches \"${sha_sum}\""
-
-# if [ $( sha256sum ubuntu_image.xz | grep ${sha_sum} | wc -l ) -eq "1" ]
-# then
-#     echo "The sha_sums match"
-# else
-#     echo "The sha_sums did not match"
-#     exit 5
-# fi
+if [ $( sha256sum ubuntu_image.xz | grep ${sha_sum} | wc -l ) -eq "1" ]
+then
+    echo "The sha_sums match"
+else
+    echo "The sha_sums did not match"
+    exit 5
+fi
 
 if [ ! -d "${sdcard_mount}" ]
 then
-    mkdir ${sdcard_mount}
+  mkdir ${sdcard_mount}
 fi
 
-echo "Format SD-Card"
+# extract
+extracted_image="ubuntu-${version}.img"
+[[ ! -f ${extracted_image} ]] && xz --decompress -c ubuntu_image.xz > ${extracted_image}
 
-if [ ! -e "${device}" ]
+if [ ! -e ${extracted_image} ]
 then
-    echo "Can't find the device \"${device}\""
+    echo "Can't find the image \"${extracted_image}\""
     exit 6
 fi
 
-sfdisk $device < $basepath/partition-tables.txt
+umount_sdcard
+echo "Mounting the sdcard boot disk"
 
-mkdosfs -F 32 ${device}1
-# mkfs.ext4 -F ${device}2
+loop_base=$( losetup --partscan --find --show "${extracted_image}" )
 
-echo "Running: mount ${device}1 \"${sdcard_mount}\" "
-mount ${device}1 "${sdcard_mount}"
+echo "Running: mount ${loop_base}p1 \"${sdcard_mount}\" "
+mount ${loop_base}p1 "${sdcard_mount}"
 
-# if [ ! -e "${sdcard_mount}/vmlinuz" ]
-# then
-#     echo "Can't find the mounted card\"${sdcard_mount}/vmlinuz\""
-#     exit 7
-# fi
+if [ ! -e "${sdcard_mount}/vmlinuz" ]
+then
+    echo "Can't find the mounted card\"${sdcard_mount}/vmlinuz\""
+    exit 7
+fi
 
-tar -xf $basepath/alpine-base.tar.gz -C "${sdcard_mount}"
-cp -v "${basepath}/headless.tar.gz" "${sdcard_mount}/localhost.apkovl.tar.gz"
+
+
+cp -v "${basepath}/user-data" "${sdcard_mount}/user-data"
 
 umount_sdcard
-echo "SD-Card successfully prepared"
+
+
+new_name="${extracted_image%.*}-configured.img"
+cp -v "${extracted_image}" "${new_name}"
+
+losetup --detach ${loop_base}
+
+lsblk
+
+echo ""
+echo "Now you can burn the disk using something like:"
+echo "      dd bs=4M status=progress if=${new_name} of=/dev/mmcblk????"
+echo ""
