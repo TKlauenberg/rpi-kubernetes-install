@@ -9,10 +9,13 @@ resource "kubernetes_namespace" "nginx-ingress-namespace" {
 
 resource "helm_release" "ingress-nginx" {
   depends_on = [
-    module.networking_flannel, module.networking_metallb, kubernetes_namespace.nginx-ingress-namespace
+    helm_release.flannel_networking,
+    helm_release.metallb_networking,
+    kubernetes_namespace.nginx-ingress-namespace
   ]
-  name      = "ingress-nginx"
-  namespace = "ingress-nginx"
+  name       = "ingress-nginx"
+  namespace  = "ingress-nginx"
   repository = "https://kubernetes.github.io/ingress-nginx"
-  chart     = "ingress-nginx"
+  chart      = "ingress-nginx"
+  version    = "4.7.2"
 }

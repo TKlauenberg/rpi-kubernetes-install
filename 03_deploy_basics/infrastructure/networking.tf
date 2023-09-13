@@ -1,25 +1,27 @@
 # Basic networking
 
-# csr approver
-resource "helm_release" "kubelet-csr-approver" {
-  name       = "kubelet-csr-approver"
-  repository = "https://postfinance.github.io/kubelet-csr-approver"
-  chart      = "kubelet-csr-approver"
+resource "helm_release" "flannel_networking" {
+  # depends_on = [
+  #   kubernetes_namespace.kube_flannel
+  # ]
+  name       = "flannel"
+  repository = "https://flannel-io.github.io/flannel/"
+  chart      = "flannel"
 
-  namespace = "kube-system"
+  cleanup_on_fail  = true
+  force_update     = true
+  namespace        = "kube-system"
+  version          = "v0.22.1"
+  timeout          = 60
 
   set {
-    name  = "providerRegex"
-    value = "^p."
+    name  = "podCidr"
+    value = "10.244.0.0/16"
   }
   set {
-    name  = "providerIpPrefixes"
-    value = "192.168.178.0/22"
+    name  = "flannel.backend"
+    value = "host-gw"
   }
-}
-
-module "networking_flannel" {
-  source = "./modules/networking-flannel"
 }
 
 resource "kubernetes_namespace" "metallb_system" {
@@ -34,17 +36,43 @@ resource "kubernetes_namespace" "metallb_system" {
   }
 }
 
-module "networking_metallb" {
+resource "helm_release" "metallb_networking" {
+  depends_on = [kubernetes_namespace.metallb_system, helm_release.flannel_networking]
+  name       = "metallb"
+  repository = "https://metallb.github.io/metallb"
+  chart      = "metallb"
+
+  cleanup_on_fail = true
+  force_update    = true
+  namespace       = "metallb-system"
+  version         = "0.13.11"
+}
+
+resource "random_string" "metallb_secret_string" {
   depends_on = [
-    kubernetes_namespace.metallb_system,
-    module.networking_flannel
+    helm_release.metallb_networking
   ]
-  source = "./modules/networking-metallb"
+  length  = 128
+  special = false
+}
+
+resource "kubernetes_secret" "metallb_secret" {
+  depends_on = [
+    helm_release.metallb_networking
+  ]
+  type = "generic"
+  metadata {
+    name      = "memberlist"
+    namespace = "metallb-system"
+  }
+  data = {
+    secretkey = base64encode(random_string.metallb_secret_string.result)
+  }
 }
 
 resource "kubectl_manifest" "metallb_addresspool" {
   depends_on = [
-    module.networking_metallb
+    helm_release.metallb_networking
   ]
   yaml_body = yamlencode({
     "apiVersion" = "metallb.io/v1beta1"
@@ -54,7 +82,7 @@ resource "kubectl_manifest" "metallb_addresspool" {
       "namespace" = "metallb-system"
     }
     "spec" = {
-      "addresses"  = ["${var.network_subnet}.210-${var.network_subnet}.250"]
+      "addresses"  = ["${var.network_subnet}.220-${var.network_subnet}.250"]
       "autoAssign" = true
     }
   })
@@ -75,4 +103,23 @@ resource "kubectl_manifest" "mettallb_l2advertisement" {
       "ipAddressPools" = ["default"]
     }
   })
+}
+
+# csr approver
+resource "helm_release" "kubelet-csr-approver" {
+  depends_on = [helm_release.metallb_networking]
+  name       = "kubelet-csr-approver"
+  repository = "https://postfinance.github.io/kubelet-csr-approver"
+  chart      = "kubelet-csr-approver"
+  namespace  = "kube-system"
+  version    = "1.0.4"
+
+  set {
+    name  = "providerRegex"
+    value = "^p."
+  }
+  set {
+    name  = "providerIpPrefixes"
+    value = "192.168.178.0/22"
+  }
 }

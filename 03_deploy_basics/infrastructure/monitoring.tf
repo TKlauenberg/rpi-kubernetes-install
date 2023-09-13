@@ -29,22 +29,36 @@ resource "kubernetes_secret" "influxdb_template" {
   }
 }
 
+resource "kubernetes_secret" "influx_tls_cert" {
+  metadata {
+    name = "web-influx"
+    namespace = local.namespace_name
+  }
+  type = "kubernetes.io/tls"
+  data = {
+    "tls.key" = ""
+    "tls.crt" = ""
+  }
+}
+
 resource "helm_release" "influxdb2" {
   depends_on = [
-    module.networking_flannel,
-    module.networking_metallb,
+    helm_release.flannel_networking,
+    helm_release.metallb_networking,
     helm_release.ingress-nginx,
     kubernetes_namespace.monitoring-namespace,
     helm_release.nfs_provisioner,
+    kubernetes_secret.influx_tls_cert,
   ]
   name       = "influxdb"
   repository = "https://helm.influxdata.com"
   chart      = "influxdb2"
   namespace  = local.namespace_name
+  version = "2.1.1"
 
   set {
     name  = "image.tag"
-    value = "2.6.1-alpine"
+    value = "2.7-alpine"
   }
 
   values = [yamlencode({
@@ -87,10 +101,15 @@ resource "helm_release" "influxdb2" {
       }
     }
     ingress = {
-      enabled   = true
-      className = "nginx"
-      hostname  = "influxdb.cluster.local"
-      path      = "/"
+      enabled    = true
+      className  = "nginx"
+      hostname   = "tobias-klauenberg.net"
+      path       = "/"
+      tls        = true
+      secretName = "influx-cert"
+      annotations = {
+        "cert-manager.io/cluster-issuer" = "letsencrypt-staging"
+      }
     }
   })]
 }
@@ -116,7 +135,6 @@ data "kubernetes_secret" "influxdb_secrets" {
 
 }
 
-
 locals {
   influxdb_svc_name = data.kubernetes_service.influxdb.metadata[0].name
   influxdb_port     = data.kubernetes_service.influxdb.spec[0].port[index(data.kubernetes_service.influxdb.spec[0].port.*.name, "http")].port
@@ -131,7 +149,7 @@ resource "helm_release" "kube-state-metrics" {
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "kube-state-metrics"
   namespace  = "kube-system"
-
+  version = "5.13.0"
 
   values = [yamlencode({
     config = {
@@ -149,7 +167,6 @@ resource "helm_release" "kube-state-metrics" {
   })]
 }
 
-
 resource "helm_release" "telegraf-ds" {
   depends_on = [
     helm_release.influxdb2
@@ -158,7 +175,7 @@ resource "helm_release" "telegraf-ds" {
   repository = "https://helm.influxdata.com"
   chart      = "telegraf-ds"
   namespace  = local.namespace_name
-
+  version = "1.1.15"
 
   values = [
     yamlencode({
@@ -249,7 +266,6 @@ resource "kubernetes_cluster_role" "influx_telegraf" {
   }
 }
 
-
 resource "kubernetes_service_account" "influx_telegraf" {
   depends_on = [
     kubernetes_namespace.monitoring-namespace,
@@ -304,6 +320,7 @@ resource "helm_release" "telegraf" {
   repository = "https://helm.influxdata.com"
   chart      = "telegraf"
   namespace  = local.namespace_name
+  version = "1.8.33"
 
   values = [
     yamlencode({
@@ -371,6 +388,7 @@ resource "helm_release" "fluentbit" {
   repository = "https://fluent.github.io/helm-charts"
   chart      = "fluent-bit"
   namespace  = local.namespace_name
+  version = "0.38.0"
 
   values = [
     yamlencode({
@@ -387,7 +405,7 @@ resource "helm_release" "fluentbit" {
     }),
     yamlencode({
       config = {
-        inputs = <<-EOT
+        inputs        = <<-EOT
           [INPUT]
               Name              tail
               Path              /var/log/containers/*.log
@@ -397,7 +415,7 @@ resource "helm_release" "fluentbit" {
               Skip_Long_Lines   On
               DB                /fluent.db
         EOT
-        filters = <<-EOT
+        filters       = <<-EOT
         [FILTER]
             Name kubernetes
             Match kube.*
@@ -406,7 +424,7 @@ resource "helm_release" "fluentbit" {
             K8S-Logging.Parser On
             K8S-Logging.Exclude On
         EOT
-        outputs = <<-EOT
+        outputs       = <<-EOT
           [OUTPUT]
               Name          influxdb
               Match         kube.*

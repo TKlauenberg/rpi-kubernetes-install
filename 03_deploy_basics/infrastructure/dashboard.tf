@@ -7,6 +7,7 @@ resource "helm_release" "metrics_server" {
   namespace  = "kube-system"
   repository = "https://kubernetes-sigs.github.io/metrics-server/"
   chart      = "metrics-server"
+  version = "3.11.0"
 }
 
 ## Install dashboard
@@ -18,6 +19,7 @@ resource "helm_release" "k8s_dashboard" {
   namespace  = "default"
   repository = "https://kubernetes.github.io/dashboard/"
   chart      = "kubernetes-dashboard"
+  version = "6.0.8"
 
   set {
     name  = "protocolHttp"
@@ -50,14 +52,6 @@ resource "helm_release" "k8s_dashboard" {
   set {
     name  = "metricsScraper.enabled"
     value = "true"
-  }
-  set {
-    name  = "metricsScraper.image.repository"
-    value = "kubernetesui/metrics-scraper-arm"
-  }
-  set {
-    name  = "metricsScraper.image.tag"
-    value = "latest"
   }
 }
 
