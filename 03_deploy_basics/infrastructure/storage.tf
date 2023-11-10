@@ -25,4 +25,19 @@ resource "helm_release" "nfs_provisioner" {
     value = "true"
   }
 
+values = [yamlencode(
+    {
+      resources = {
+        requests = {
+          cpu    = "20m"
+          memory = "32Mi"
+        }
+        limits = {
+          cpu    = "50m"
+          memory = "64Mi"
+        }
+      }
+      installCRDs = true
+    }
+  )]
 }

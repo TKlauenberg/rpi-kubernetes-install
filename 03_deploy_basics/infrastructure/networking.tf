@@ -11,7 +11,7 @@ resource "helm_release" "flannel_networking" {
   cleanup_on_fail  = true
   force_update     = true
   namespace        = "kube-system"
-  version          = "v0.22.1"
+  version          = "v0.23.0"
   timeout          = 60
 
   set {
@@ -45,7 +45,7 @@ resource "helm_release" "metallb_networking" {
   cleanup_on_fail = true
   force_update    = true
   namespace       = "metallb-system"
-  version         = "0.13.11"
+  version         = "0.13.12"
 }
 
 resource "random_string" "metallb_secret_string" {
@@ -82,7 +82,7 @@ resource "kubectl_manifest" "metallb_addresspool" {
       "namespace" = "metallb-system"
     }
     "spec" = {
-      "addresses"  = ["${var.network_subnet}.220-${var.network_subnet}.250"]
+      "addresses"  = ["${var.network_subnet}.230-${var.network_subnet}.250"]
       "autoAssign" = true
     }
   })
@@ -112,7 +112,7 @@ resource "helm_release" "kubelet-csr-approver" {
   repository = "https://postfinance.github.io/kubelet-csr-approver"
   chart      = "kubelet-csr-approver"
   namespace  = "kube-system"
-  version    = "1.0.4"
+  version    = "1.0.5"
 
   set {
     name  = "providerRegex"
@@ -122,4 +122,20 @@ resource "helm_release" "kubelet-csr-approver" {
     name  = "providerIpPrefixes"
     value = "192.168.178.0/22"
   }
+
+  values = [yamlencode(
+    {
+      resources = {
+        requests = {
+          cpu    = "20m"
+          memory = "32Mi"
+        }
+        limits = {
+          cpu    = "50m"
+          memory = "64Mi"
+        }
+      }
+      installCRDs = true
+    }
+  )]
 }

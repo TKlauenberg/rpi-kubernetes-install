@@ -58,7 +58,7 @@ resource "helm_release" "influxdb2" {
 
   set {
     name  = "image.tag"
-    value = "2.7-alpine"
+    value = "2.7.3-alpine"
   }
 
   values = [yamlencode({
@@ -149,7 +149,7 @@ resource "helm_release" "kube-state-metrics" {
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "kube-state-metrics"
   namespace  = "kube-system"
-  version = "5.13.0"
+  version = "5.15.1"
 
   values = [yamlencode({
     config = {
@@ -175,7 +175,7 @@ resource "helm_release" "telegraf-ds" {
   repository = "https://helm.influxdata.com"
   chart      = "telegraf-ds"
   namespace  = local.namespace_name
-  version = "1.1.15"
+  version = "1.1.19"
 
   values = [
     yamlencode({
@@ -320,7 +320,7 @@ resource "helm_release" "telegraf" {
   repository = "https://helm.influxdata.com"
   chart      = "telegraf"
   namespace  = local.namespace_name
-  version = "1.8.33"
+  version = "1.8.37"
 
   values = [
     yamlencode({
@@ -388,7 +388,7 @@ resource "helm_release" "fluentbit" {
   repository = "https://fluent.github.io/helm-charts"
   chart      = "fluent-bit"
   namespace  = local.namespace_name
-  version = "0.38.0"
+  version = "0.39.1"
 
   values = [
     yamlencode({

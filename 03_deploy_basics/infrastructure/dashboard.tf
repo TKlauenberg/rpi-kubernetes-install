@@ -8,6 +8,22 @@ resource "helm_release" "metrics_server" {
   repository = "https://kubernetes-sigs.github.io/metrics-server/"
   chart      = "metrics-server"
   version = "3.11.0"
+
+  values = [yamlencode(
+    {
+      resources = {
+        requests = {
+          cpu    = "20m"
+          memory = "32Mi"
+        }
+        limits = {
+          cpu    = "100m"
+          memory = "256Mi"
+        }
+      }
+      installCRDs = true
+    }
+  )]
 }
 
 ## Install dashboard
@@ -53,6 +69,22 @@ resource "helm_release" "k8s_dashboard" {
     name  = "metricsScraper.enabled"
     value = "true"
   }
+
+  values = [yamlencode(
+    {
+      resources = {
+        requests = {
+          cpu    = "200m"
+          memory = "128Mi"
+        }
+        limits = {
+          cpu    = "500m"
+          memory = "256Mi"
+        }
+      }
+      installCRDs = true
+    }
+  )]
 }
 
 resource "kubernetes_cluster_role_binding" "k8s_dashboard_role" {
