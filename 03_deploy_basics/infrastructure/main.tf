@@ -29,6 +29,15 @@ variable "context_name" {
 variable "nfs_storage" {
   description = "path of nfs storage"
 }
+variable "dyndns_fritzbox" {
+  description = "authentication for fritzbox dyndns"
+}
 variable "images" {
   description = "images used in configuration"
+}
+variable "prod_namespace" {
+  description = "namespace for production"
+}
+variable "prod_admin" {
+  description = "admin for production"
 }

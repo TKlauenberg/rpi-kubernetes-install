@@ -17,5 +17,21 @@ resource "helm_release" "ingress-nginx" {
   namespace  = "ingress-nginx"
   repository = "https://kubernetes.github.io/ingress-nginx"
   chart      = "ingress-nginx"
-  version    = "4.7.2"
+  version    = "4.8.3"
+
+  values = [yamlencode(
+    {
+      resources = {
+        requests = {
+          cpu    = "50m"
+          memory = "128Mi"
+        }
+        limits = {
+          cpu    = "200m"
+          memory = "512Mi"
+        }
+      }
+      installCRDs = true
+    }
+  )]
 }

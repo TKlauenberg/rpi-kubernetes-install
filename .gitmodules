@@ -7,3 +7,9 @@
 [submodule "03_deploy_basics/infrastructure/static/external/community-templates"]
 	path = 03_deploy_basics/infrastructure/static/external/community-templates
 	url = https://github.com/influxdata/community-templates.git
+[submodule "03_deploy_basics/infrastructure/static/external/kubegres"]
+	path = 03_deploy_basics/infrastructure/static/external/kubegres
+	url = https://github.com/reactive-tech/kubegres.git
+[submodule "03_deploy_basics/infrastructure/static/external/cloudnative-pg"]
+	path = 03_deploy_basics/infrastructure/static/external/cloudnative-pg
+	url = https://github.com/cloudnative-pg/cloudnative-pg.git

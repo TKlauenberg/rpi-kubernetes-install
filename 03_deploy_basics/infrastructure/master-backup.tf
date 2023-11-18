@@ -62,8 +62,16 @@ resource "kubernetes_cron_job_v1" "etcd_backup" {
                 name  = "ETCDCTL_API"
                 value = "3"
               }
-              command = ["/bin/sh"]
-              args    = ["-c", "etcdctl --endpoints=https://127.0.0.1:2379 --cacert=/etc/kubernetes/pki/etcd/ca.crt --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt --key=/etc/kubernetes/pki/etcd/healthcheck-client.key snapshot save /backup/etcd-snapshot-$(date +%Y-%m-%d_%H:%M:%S_%Z).db"]
+              command = ["etcdctl"]
+              args = [
+                "--endpoints=https://127.0.0.1:2379",
+                "--cacert=/etc/kubernetes/pki/etcd/ca.crt",
+                "--cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt",
+                "--key=/etc/kubernetes/pki/etcd/healthcheck-client.key",
+                "snapshot",
+                "save",
+                "/backup/etcd-snapshot-$(date +%Y-%m-%d_%H:%M:%S_%Z).db"
+              ]
               volume_mount {
                 mount_path = "/backup"
                 name       = "backup-v-nfs"
