@@ -29,9 +29,7 @@ variable "context_name" {
 variable "nfs_storage" {
   description = "path of nfs storage"
 }
-variable "dyndns_fritzbox" {
-  description = "authentication for fritzbox dyndns"
-}
+
 variable "images" {
   description = "images used in configuration"
 }
@@ -54,7 +52,7 @@ variable "prod_admin" {
 }
 
 variable "letsencrypt_email" {
-  description = "email for letsencrypt"  
+  description = "email for letsencrypt"
 }
 
 variable "domain_name" {
