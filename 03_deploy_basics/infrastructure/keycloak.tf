@@ -4,15 +4,23 @@ locals {
   keycloak_db_user          = "keycloak"
   keycloak_db_password      = "keycloak"
   keycloak_db_name          = "keycloak"
-  keycloak_host_name        = "keycloak.tobias-klauenberg.net"
+  keycloak_host_name        = "auth.${var.domain_name}"
   keycloak_password         = "keycloak"
+  keycloak_namespace        = var.auth_namespace
+}
+
+resource "kubernetes_namespace" "auth" {
+  metadata {
+    name = local.keycloak_namespace
+  }
 }
 
 resource "kubernetes_secret" "keycloak_db_auth_secret" {
+  depends_on = [ kubernetes_namespace.auth ]
   type = "kubernetes.io/basic-auth"
   metadata {
     name      = "keycloak-db-auth-secret"
-    namespace = kubernetes_namespace.prod.metadata[0].name
+    namespace = local.keycloak_namespace
   }
   data = {
     username = local.keycloak_db_user
@@ -20,39 +28,18 @@ resource "kubernetes_secret" "keycloak_db_auth_secret" {
   }
 }
 
-# resource "kubernetes_secret" "keycloak_db" {
-#   depends_on = [
-#     kubectl_manifest.kubegres,
-#     kubernetes_namespace.prod
-#   ]
-#   metadata {
-#     name      = "keycloak-db"
-#     namespace = kubernetes_namespace.prod.metadata[0].name
-#   }
-#   type = "Opaque"
-#   data = {
-#     "POSTGRES_REPLICATION_PASSWORD" = local.kubegres_replication_password
-#     "POSTGRES_DB"                   = local.kubegres_db
-#     "POSTGRES_PASSWORD"             = local.kubegres_password
-#     "KEYCLOAK_DB_USER"              = local.keycloak_db_user
-#     "KEYCLOAK_DB_PASSWORD"          = local.keycloak_db_password
-#     "KEYCLOAK_DB_NAME"              = local.keycloak_db_name
-#     "POSTGRES_CONNECTION_STRING" = "postgresql://postgres:${local.kubegres_password}@${local.keycloak_db_resource_name}:5432/${local.kubegres_db}"
-#   }
-# }
-
 resource "kubectl_manifest" "keycloak_db" {
   depends_on = [
-    kubernetes_namespace.prod,
-    helm_release.cnpg
-    # kubernetes_secret.keycloak_db
+    kubernetes_namespace.auth,
+    helm_release.cnpg,
+    kubernetes_secret.keycloak_db_auth_secret,
   ]
   yaml_body = yamlencode({
     apiVersion = "postgresql.cnpg.io/v1"
     kind       = "Cluster"
     metadata = {
       name      = local.keycloak_db_resource_name
-      namespace = kubernetes_namespace.prod.metadata[0].name
+      namespace = local.keycloak_namespace
     }
     spec = {
       instances : 2
@@ -74,21 +61,22 @@ resource "kubectl_manifest" "keycloak_db" {
     resources = {
       requests = {
         cpu    = "100m"
-        memory = "128Mi"
+        memory = "384Mi"
       }
       limits = {
         cpu    = "500m"
-        memory = "512Mi"
+        memory = "1Gi"
       }
     }
   })
 }
 
 resource "kubernetes_secret" "keycloak_auth_secret" {
+  depends_on = [ kubernetes_namespace.auth ]
   type = "Opaque"
   metadata {
     name      = "keycloak-auth-secret"
-    namespace = kubernetes_namespace.prod.metadata[0].name
+    namespace = local.keycloak_namespace
   }
   data = {
     password = local.keycloak_password
@@ -98,13 +86,15 @@ resource "kubernetes_secret" "keycloak_auth_secret" {
 
 resource "helm_release" "keycloak" {
   depends_on = [
+    kubernetes_namespace.auth,
+    helm_release.certmanager,
     kubectl_manifest.keycloak_db,
     kubernetes_secret.keycloak_auth_secret,
   ]
   name       = "keycloak"
   repository = "https://tklauenberg.github.io/helm"
   chart      = "keycloak"
-  namespace  = kubernetes_namespace.prod.metadata[0].name
+  namespace  = local.keycloak_namespace
   version    = "0.1.9"
 
   values = [yamlencode({
@@ -127,7 +117,7 @@ resource "helm_release" "keycloak" {
         hosts      = [local.keycloak_host_name]
       }]
       annotations = {
-        "cert-manager.io/cluster-issuer" = "letsencrypt-staging"
+        "cert-manager.io/cluster-issuer" = "letsencrypt-production"
       }
     }
     keycloak = {
@@ -157,7 +147,7 @@ resource "helm_release" "keycloak" {
         memory = "128Mi"
       }
       limits = {
-        cpu    = "4"
+        cpu    = "1"
         memory = "512Mi"
       }
     }

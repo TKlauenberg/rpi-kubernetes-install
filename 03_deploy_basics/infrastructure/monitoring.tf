@@ -49,6 +49,7 @@ resource "helm_release" "influxdb2" {
     kubernetes_namespace.monitoring-namespace,
     helm_release.nfs_provisioner,
     kubernetes_secret.influx_tls_cert,
+    helm_release.certmanager,
   ]
   name       = "influxdb"
   repository = "https://helm.influxdata.com"
@@ -103,7 +104,7 @@ resource "helm_release" "influxdb2" {
     ingress = {
       enabled    = true
       className  = "nginx"
-      hostname   = "tobias-klauenberg.net"
+      hostname   = var.domain_name
       path       = "/"
       tls        = true
       secretName = "influx-cert"

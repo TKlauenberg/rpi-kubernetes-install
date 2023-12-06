@@ -27,7 +27,7 @@ resource "helm_release" "certmanager" {
 
 }
 
-resource "kubectl_manifest" "issuer" {
+resource "kubectl_manifest" "issuer-staging" {
   depends_on = [
     helm_release.certmanager
   ]
@@ -40,10 +40,41 @@ resource "kubectl_manifest" "issuer" {
     }
     "spec" = {
       "acme" = {
-        "email"  = "toklaui@live.de"
+        "email"  = var.letsencrypt_email
         "server" = "https://acme-staging-v02.api.letsencrypt.org/directory"
         "privateKeySecretRef" = {
           "name" = "letsencrypt-staging-account"
+        }
+        "solvers" = [{
+          "http01" = {
+            "ingress" = {
+              "class" = "nginx"
+            }
+          }
+        }]
+      }
+    }
+  })
+}
+
+resource "kubectl_manifest" "issuer-production" {
+  depends_on = [
+    helm_release.certmanager
+  ]
+  yaml_body = yamlencode({
+    "apiVersion" = "cert-manager.io/v1"
+    "kind"       = "ClusterIssuer"
+    "metadata" = {
+      "name"    = "letsencrypt-production"
+      namespace = helm_release.certmanager.namespace
+    }
+    "spec" = {
+      "acme" = {
+        "email"  = var.letsencrypt_email
+        # production server
+        "server" = "https://acme-v02.api.letsencrypt.org/directory"
+        "privateKeySecretRef" = {
+          "name" = "letsencrypt-account"
         }
         "solvers" = [{
           "http01" = {

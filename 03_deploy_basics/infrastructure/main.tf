@@ -38,6 +38,26 @@ variable "images" {
 variable "prod_namespace" {
   description = "namespace for production"
 }
+
+variable "auth_namespace" {
+  description = "namespace for authentication"
+  default = "auth"
+}
+
+variable "monitoring_namespace" {
+  description = "namespace for monitoring"
+  default = "monitoring"
+}
+
 variable "prod_admin" {
   description = "admin for production"
+}
+
+variable "letsencrypt_email" {
+  description = "email for letsencrypt"  
+}
+
+variable "domain_name" {
+  description = "domain name"
+
 }
