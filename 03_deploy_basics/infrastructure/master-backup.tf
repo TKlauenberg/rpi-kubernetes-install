@@ -1,13 +1,13 @@
 resource "kubernetes_persistent_volume_claim" "etc_backup_shared_nfs_claim" {
   depends_on = [
-    helm_release.nfs_provisioner
+    kubernetes_manifest.storage_class
   ]
   metadata {
     name      = "etc-backup-pvc"
     namespace = "kube-system"
   }
   spec {
-    storage_class_name = "nfs-client"
+    storage_class_name = "nfs-csi-client"
     access_modes       = ["ReadWriteMany"]
     resources {
       requests = {

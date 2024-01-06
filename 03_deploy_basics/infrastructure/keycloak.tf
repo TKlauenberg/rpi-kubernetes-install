@@ -16,8 +16,8 @@ resource "kubernetes_namespace" "auth" {
 }
 
 resource "kubernetes_secret" "keycloak_db_auth_secret" {
-  depends_on = [ kubernetes_namespace.auth ]
-  type = "kubernetes.io/basic-auth"
+  depends_on = [kubernetes_namespace.auth]
+  type       = "kubernetes.io/basic-auth"
   metadata {
     name      = "keycloak-db-auth-secret"
     namespace = local.keycloak_namespace
@@ -55,25 +55,26 @@ resource "kubectl_manifest" "keycloak_db" {
       }
 
       storage = {
+        storageClass = "nfs-csi-client"
         size : "200Mi"
       }
-    }
-    resources = {
-      requests = {
-        cpu    = "100m"
-        memory = "384Mi"
-      }
-      limits = {
-        cpu    = "500m"
-        memory = "1Gi"
+      resources = {
+        requests = {
+          cpu    = "100m"
+          memory = "128Mi"
+        }
+        limits = {
+          cpu    = "1500m"
+          memory = "1Gi"
+        }
       }
     }
   })
 }
 
 resource "kubernetes_secret" "keycloak_auth_secret" {
-  depends_on = [ kubernetes_namespace.auth ]
-  type = "Opaque"
+  depends_on = [kubernetes_namespace.auth]
+  type       = "Opaque"
   metadata {
     name      = "keycloak-auth-secret"
     namespace = local.keycloak_namespace

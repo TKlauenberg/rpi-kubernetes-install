@@ -47,7 +47,7 @@ resource "helm_release" "influxdb2" {
     helm_release.metallb_networking,
     helm_release.ingress-nginx,
     kubernetes_namespace.monitoring-namespace,
-    helm_release.nfs_provisioner,
+    kubernetes_manifest.storage_class,
     kubernetes_secret.influx_tls_cert,
     helm_release.certmanager,
   ]
@@ -55,11 +55,11 @@ resource "helm_release" "influxdb2" {
   repository = "https://helm.influxdata.com"
   chart      = "influxdb2"
   namespace  = local.namespace_name
-  version = "2.1.1"
+  version = "2.1.2"
 
   set {
     name  = "image.tag"
-    value = "2.7.3-alpine"
+    value = "2.7.4-alpine"
   }
 
   values = [yamlencode({
@@ -150,7 +150,7 @@ resource "helm_release" "kube-state-metrics" {
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "kube-state-metrics"
   namespace  = "kube-system"
-  version = "5.15.1"
+  version = "5.15.3"
 
   values = [yamlencode({
     config = {
@@ -176,7 +176,7 @@ resource "helm_release" "telegraf-ds" {
   repository = "https://helm.influxdata.com"
   chart      = "telegraf-ds"
   namespace  = local.namespace_name
-  version = "1.1.19"
+  version = "1.1.21"
 
   values = [
     yamlencode({
@@ -321,7 +321,7 @@ resource "helm_release" "telegraf" {
   repository = "https://helm.influxdata.com"
   chart      = "telegraf"
   namespace  = local.namespace_name
-  version = "1.8.37"
+  version = "1.8.39"
 
   values = [
     yamlencode({
@@ -389,7 +389,7 @@ resource "helm_release" "fluentbit" {
   repository = "https://fluent.github.io/helm-charts"
   chart      = "fluent-bit"
   namespace  = local.namespace_name
-  version = "0.39.1"
+  version = "0.40.0"
 
   values = [
     yamlencode({
