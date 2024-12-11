@@ -6,7 +6,7 @@ authors = ["Tobias Klauenberg <toklaui@live.de>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-ansible = "^6.4.0"
+ansible = "^7.0.0"
 
 [tool.poetry.dev-dependencies]
 
