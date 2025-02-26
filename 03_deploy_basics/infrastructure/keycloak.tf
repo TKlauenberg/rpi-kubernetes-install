@@ -54,6 +54,13 @@ resource "kubectl_manifest" "keycloak_db" {
         }
       }
 
+      # backup = {
+      #   schedule = "0 0 * * *"
+      #   secret = {
+      #     name = kubernetes_secret.keycloak_db_auth_secret.metadata[0].name
+      #   }
+      # }
+
       storage = {
         storageClass = "nfs-csi-client"
         size : "200Mi"
@@ -96,13 +103,9 @@ resource "helm_release" "keycloak" {
   repository = "https://tklauenberg.github.io/helm"
   chart      = "keycloak"
   namespace  = local.keycloak_namespace
-  version    = "0.1.9"
+  version    = "0.3.5"
 
   values = [yamlencode({
-    image = {
-      repository = "ghcr.io/tklauenberg/keycloak"
-      tag        = "22.0"
-    }
     ingress = {
       enabled   = true
       className = "nginx"
@@ -124,7 +127,6 @@ resource "helm_release" "keycloak" {
     keycloak = {
       loglevel = "ALL"
       hostname = local.keycloak_host_name
-
       adminUser = "admin"
       adminPasswordSecret = {
         name = kubernetes_secret.keycloak_auth_secret.metadata[0].name

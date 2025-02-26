@@ -6,7 +6,7 @@ resource "helm_release" "certmanager" {
   repository       = "https://charts.jetstack.io"
   chart            = "cert-manager"
   namespace        = "cert-manager"
-  version          = "v1.13.3"
+  version          = "v1.17.1"
   create_namespace = true
   # TODO add monitoring to influxdb!
   values = [yamlencode(

@@ -31,7 +31,7 @@ resource "kubernetes_secret" "influxdb_template" {
 
 resource "kubernetes_secret" "influx_tls_cert" {
   metadata {
-    name = "web-influx"
+    name      = "web-influx"
     namespace = local.namespace_name
   }
   type = "kubernetes.io/tls"
@@ -55,11 +55,11 @@ resource "helm_release" "influxdb2" {
   repository = "https://helm.influxdata.com"
   chart      = "influxdb2"
   namespace  = local.namespace_name
-  version = "2.1.2"
+  version    = "2.1.2"
 
   set {
     name  = "image.tag"
-    value = "2.7.4-alpine"
+    value = "2.7.10-alpine"
   }
 
   values = [yamlencode({
@@ -150,7 +150,7 @@ resource "helm_release" "kube-state-metrics" {
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "kube-state-metrics"
   namespace  = "kube-system"
-  version = "5.15.3"
+  version    = "5.30.0"
 
   values = [yamlencode({
     config = {
@@ -176,7 +176,7 @@ resource "helm_release" "telegraf-ds" {
   repository = "https://helm.influxdata.com"
   chart      = "telegraf-ds"
   namespace  = local.namespace_name
-  version = "1.1.21"
+  version    = "1.1.35"
 
   values = [
     yamlencode({
@@ -204,6 +204,44 @@ resource "helm_release" "telegraf-ds" {
               organization = local.influx_organization
             }
           }
+        ]
+        inputs = [
+          { temp = {} },
+          { diskio = {} },
+        { kernel = {} },
+        { mem = {} },
+        { net = {} },
+        { processes = {} },
+        { swap = {} },
+        { system = {} },
+        {
+          cpu = {
+            percpu          = true
+            totalcpu        = true
+            collect_cpu_time = false
+            report_active   = false
+          }
+        },
+        {
+          disk = {
+            ignore_fs = [
+              "tmpfs",
+              "devtmpfs",
+              "devfs",
+              "iso9660",
+              "overlay",
+              "aufs",
+              "squashfs"
+            ]
+          }
+        },
+        {
+          kubernetes = {
+            url                  = "https://$HOSTIP:10250"
+            bearer_token         = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+            insecure_skip_verify = true
+          }
+        }
         ]
       }
     }),
@@ -321,7 +359,7 @@ resource "helm_release" "telegraf" {
   repository = "https://helm.influxdata.com"
   chart      = "telegraf"
   namespace  = local.namespace_name
-  version = "1.8.39"
+  version    = "1.8.55"
 
   values = [
     yamlencode({
@@ -389,7 +427,7 @@ resource "helm_release" "fluentbit" {
   repository = "https://fluent.github.io/helm-charts"
   chart      = "fluent-bit"
   namespace  = local.namespace_name
-  version = "0.40.0"
+  version    = "0.48.6"
 
   values = [
     yamlencode({

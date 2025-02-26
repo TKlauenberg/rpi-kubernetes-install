@@ -6,30 +6,8 @@
       - kubectl={{ settings.kubernetes_version }}.*
       - kubelet={{ settings.kubernetes_version }}.*
       - kubeadm={{ settings.kubernetes_version }}.*
+      - cri-o={{ settings.kubernetes_version }}.*
     state: present
-
-- name: Download crio tar.gz
-  ansible.builtin.get_url:
-  # make architecture variable
-    url: https://storage.googleapis.com/cri-o/artifacts/cri-o.arm64.v{{ settings.kubernetes_version }}.0.tar.gz
-    dest: /tmp/crio.tar.gz
-    mode: '0755'
-
-- name: Extract crio tar.gz
-  ansible.builtin.unarchive:
-    src: /tmp/crio.tar.gz
-    dest: /tmp
-    remote_src: true
-    creates: /tmp/cri-o/bin/crio
-
-- name: Install crio
-  ansible.builtin.shell:
-    cmd: |
-      SYSTEMDDIR=/lib/systemd/system
-      /tmp/cri-o/install
-    chdir: /tmp/cri-o
-    creates: /etc/crio/crio.conf
-  register: install_crio
 
 - name: Create crio.conf module load
   ansible.builtin.copy:

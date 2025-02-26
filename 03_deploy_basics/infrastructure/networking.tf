@@ -11,7 +11,7 @@ resource "helm_release" "flannel_networking" {
   cleanup_on_fail  = true
   force_update     = true
   namespace        = "kube-system"
-  version          = "v0.23.0"
+  version          = "v0.26.4"
   timeout          = 60
 
   set {
@@ -45,7 +45,7 @@ resource "helm_release" "metallb_networking" {
   cleanup_on_fail = true
   force_update    = true
   namespace       = "metallb-system"
-  version         = "0.13.12"
+  version         = "0.14.9"
 }
 
 resource "random_string" "metallb_secret_string" {
@@ -112,7 +112,7 @@ resource "helm_release" "kubelet-csr-approver" {
   repository = "https://postfinance.github.io/kubelet-csr-approver"
   chart      = "kubelet-csr-approver"
   namespace  = "kube-system"
-  version    = "1.0.5"
+  version    = "1.2.6"
 
   set {
     name  = "providerRegex"

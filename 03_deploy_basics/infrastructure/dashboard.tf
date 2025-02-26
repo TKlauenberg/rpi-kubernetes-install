@@ -7,7 +7,7 @@ resource "helm_release" "metrics_server" {
   namespace  = "kube-system"
   repository = "https://kubernetes-sigs.github.io/metrics-server/"
   chart      = "metrics-server"
-  version = "3.11.0"
+  version = "3.12.2"
 
   values = [yamlencode(
     {
@@ -35,7 +35,7 @@ resource "helm_release" "k8s_dashboard" {
   namespace  = "default"
   repository = "https://kubernetes.github.io/dashboard/"
   chart      = "kubernetes-dashboard"
-  version = "6.0.8"
+  version = "7.10.5"
 
   set {
     name  = "protocolHttp"
@@ -78,7 +78,7 @@ resource "helm_release" "k8s_dashboard" {
           memory = "128Mi"
         }
         limits = {
-          cpu    = "500m"
+          cpu    = "1000m"
           memory = "256Mi"
         }
       }

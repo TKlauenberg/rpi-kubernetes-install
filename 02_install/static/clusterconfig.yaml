@@ -1,6 +1,15 @@
 ---
 apiServer:
   timeoutForControlPlane: 4m0s
+  extraArgs:
+    authorization-mode: Node,RBAC
+    # TODO create a variable?
+    oidc-issuer-url: https://auth.url/realms/master
+    oidc-client-id: pikube
+    oidc-username-claim: email
+    oidc-username-prefix: "oidc:"
+    oidc-groups-claim: groups
+    oidc-groups-prefix: "oidc:"
 apiVersion: kubeadm.k8s.io/v1beta3
 certificatesDir: /etc/kubernetes/pki
 clusterName: pikube
@@ -10,7 +19,7 @@ etcd:
 imageRepository: registry.k8s.io
 kind: ClusterConfiguration
 # TODO create a variable?
-kubernetesVersion: 1.28.0
+kubernetesVersion: 1.30.2
 networking:
   dnsDomain: cluster.local
   serviceSubnet: "10.96.0.0/16"

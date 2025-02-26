@@ -1,47 +1,3 @@
-resource "helm_release" "nfs_provisioner" {
-  depends_on = [
-    helm_release.flannel_networking,
-    helm_release.metallb_networking,
-    helm_release.ingress-nginx
-  ]
-
-  name       = "nfs-subdir-provisioner"
-  repository = "https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner"
-  chart      = "nfs-subdir-external-provisioner"
-  version    = "4.0.18"
-
-  set {
-    name  = "nfs.server"
-    value = var.nfs_storage.server
-  }
-
-  set {
-    name  = "nfs.path"
-    value = var.nfs_storage.path
-  }
-
-  set {
-    name  = "storageClass.defaultClass"
-    value = "false"
-  }
-
-  values = [yamlencode(
-    {
-      resources = {
-        requests = {
-          cpu    = "20m"
-          memory = "32Mi"
-        }
-        limits = {
-          cpu    = "50m"
-          memory = "64Mi"
-        }
-      }
-      installCRDs = true
-    }
-  )]
-}
-
 # install driver for storage class
 resource "helm_release" "nfs-csi-driver" {
   depends_on = [
@@ -52,7 +8,7 @@ resource "helm_release" "nfs-csi-driver" {
   name       = "nfs-csi-driver"
   repository = "https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts"
   chart      = "csi-driver-nfs"
-  version    = "4.5.0"
+  version    = "4.10.0"
   namespace  = "kube-system"
 
   values = [yamlencode({
@@ -73,8 +29,8 @@ resource "kubernetes_manifest" "storage_class" {
     kind       = "StorageClass"
     metadata = {
       name = "nfs-csi-client"
-      annotations= {
-        "storageclass.kubernetes.io/is-default-class"= "true"
+      annotations = {
+        "storageclass.kubernetes.io/is-default-class" = "true"
       }
     }
     provisioner = "nfs.csi.k8s.io"

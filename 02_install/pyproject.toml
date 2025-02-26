@@ -5,8 +5,8 @@ description = ""
 authors = ["Tobias Klauenberg <toklaui@live.de>"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
-ansible = "^6.4.0"
+python = "^3.12"
+ansible = "^9.5.0"
 
 [tool.poetry.dev-dependencies]
 

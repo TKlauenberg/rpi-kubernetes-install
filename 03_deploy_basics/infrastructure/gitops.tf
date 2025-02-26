@@ -1,7 +1,7 @@
 
 locals {
   # TODO currently manual task
-  argocd_keycloak_client_secret = "Ex1Fs2aDy8BJXSbn3cc34Hn0mQOf46FB"
+  argocd_keycloak_client_secret = "Ni6ziwYvtjV69qI3miDETesAMzv1Cbz7"
   argocd_host_name              = "argocd.${var.domain_name}"
 }
 
@@ -14,7 +14,7 @@ resource "helm_release" "argocd" {
   name             = "argocd"
   namespace        = "argocd"
   create_namespace = true
-  version          = "5.51.4"
+  version          = "7.8.5"
 
   values = [yamlencode({
     dex = {
@@ -23,18 +23,18 @@ resource "helm_release" "argocd" {
     configs = {
       cm = {
         # argocd url
-        url = "https://${local.argocd_host_name}"
+        url             = "https://${local.argocd_host_name}"
         "admin.enabled" = false
         "oidc.config" = yamlencode({
           name            = "keycloak"
           issuer          = "https://${local.keycloak_host_name}/realms/master"
           clientID        = "argocd"
           clientSecret    = "$oidc.keycloak.clientSecret"
-          requestedScopes = ["openid", "profile", "email", "groups"],
+          requestedScopes = ["openid", "profile", "email"]
         })
       }
       rbac = {
-        "policy.csv" = "g, ArgoCDAdmins, role:admin"
+        "policy.csv" = "g, ArgoCDAdmin, role:admin\ng, ArgoCDReader, role:readonly"
       }
       secret = {
         extra = {
@@ -46,12 +46,9 @@ resource "helm_release" "argocd" {
       ingress = {
         enabled          = true
         ingressClassName = "nginx"
-        hosts            = [local.argocd_host_name]
+        hostname         = local.argocd_host_name
         https            = true
-        tls = [{
-          secretName = "argocd-cert"
-          hosts      = [local.argocd_host_name]
-        }]
+        tls              = true
         annotations = {
           "cert-manager.io/cluster-issuer"               = "letsencrypt-production",
           "nginx.ingress.kubernetes.io/backend-protocol" = "HTTPS"
@@ -78,14 +75,14 @@ resource "helm_release" "argocd" {
 }
 
 resource "helm_release" "sealed-secrets" {
-  depends_on = [ helm_release.argocd ]
+  depends_on = [helm_release.argocd]
   repository = "https://bitnami-labs.github.io/sealed-secrets"
   chart      = "sealed-secrets"
   name       = "sealed-secrets"
-  version = "2.13.3"
-  namespace = "kube-system"
+  version    = "2.17.1"
+  namespace  = "kube-system"
   set {
-    name = "fullnameOverride"
+    name  = "fullnameOverride"
     value = "sealed-secrets-controller"
   }
 }
